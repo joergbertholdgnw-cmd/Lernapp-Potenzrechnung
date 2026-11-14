@@ -1,5 +1,6 @@
 /*
- * Lernapp „Potenzen“ (Jahrgang 10) – Abschnitte, Übungen und Tests zur Selbstkontrolle.
+ * Lernapp „Rechnen mit Potenzen“ (Jahrgang 10) – Abschnitte, Übungen und Tests zur Selbstkontrolle.
+ * Die Buchangaben (seiten, buch) erscheinen nur in der Lehrkräfte-Übersicht, nicht in der App.
  *
  * Grundlage: Elemente der Mathematik 10 (Niedersachsen G9), Kapitel 2, S. 44–71.
  * Aufbau und Aufgabenarten orientieren sich am Buch; Texte und Zahlen sind eigene.
@@ -28,14 +29,14 @@
   // ───────────── Abschnitte ─────────────
   const ABSCHNITTE = [
     {
-      id: 1, nr: "2.1", titel: "Potenzen mit ganzzahligen Exponenten", seiten: "S. 43–48",
+      id: 1, nr: "1", titel: "Potenzen mit ganzzahligen Exponenten", seiten: "S. 43–48",
       merke: `<p>Für eine Zahl a und eine natürliche Zahl n ≥ 2 ist ${P("a", "n")} = a · a · … · a (n Faktoren). Dazu gilt ${P("a", 1)} = a und ${P("a", 0)} = 1.</p>
         <p>Für a ≠ 0 gilt ${P("a", "−n")} = ${B(1, P("a", "n"))}. Ein negativer Exponent bedeutet also „Kehrwert“, nicht „negative Zahl“: ${P(2, -3)} = ${B(1, 8)}.</p>
         <p>Achte auf Klammern: ${P("(−3)", 2)} = 9, aber −${P(3, 2)} = −9.</p>`,
       buch: "Information S. 44–45, Übungen S. 46 Nr. 2, 3, 6, 8, 9; S. 47 Nr. 13, 16; S. 48 Nr. 23"
     },
     {
-      id: 2, nr: "2.2", titel: "Zahlen mit abgetrennten Zehnerpotenzen", seiten: "S. 49–51 und 62–63",
+      id: 2, nr: "2", titel: "Zahlen mit abgetrennten Zehnerpotenzen", seiten: "S. 49–51 und 62–63",
       merke: `<p>Sehr große und sehr kleine Zahlen schreibt man als Vorfaktor zwischen 1 und 10 mal Zehnerpotenz:</p>
         <p class="formel">52 000 = ${WS(5.2, 4)} &nbsp;&nbsp; 0,0034 = ${WS(3.4, -3)}</p>
         <p>Der Exponent gibt an, um wie viele Stellen das Komma verschoben wird: positiv bei großen Zahlen, negativ bei Zahlen zwischen 0 und 1.</p>
@@ -43,14 +44,14 @@
       buch: "Selbstlernseiten S. 49–51 mit Nr. 1–3, 5, 7–9, 11; Im Blickpunkt S. 62–63 Nr. 2, 3"
     },
     {
-      id: 3, nr: "2.3", titel: "Potenzen mit rationalen Exponenten", seiten: "S. 52–59",
+      id: 3, nr: "3", titel: "Potenzen mit rationalen Exponenten", seiten: "S. 52–59",
       merke: `<p>Für a ≥ 0 ist ${W("n", "a")} die nichtnegative Zahl, deren n-te Potenz a ergibt: ${W(3, 64)} = 4, denn ${P(4, 3)} = 64.</p>
         <p>Für a ≥ 0 gilt ${P("a", "1/n")} = ${W("n", "a")}, und für a > 0 gilt ${P("a", "m/n")} = ${W("n", P("a", "m"))} = ${P(`(${W("n", "a")})`, "m")}.</p>
         <p>Rechentipp: zuerst die Wurzel ziehen, dann potenzieren: ${P(8, "2/3")} = ${P("(∛8)", 2)} = ${P(2, 2)} = 4.</p>`,
       buch: "Information S. 53–54 und 57, Übungen S. 55 Nr. 4, 5, 9; S. 58 Nr. 4–7; S. 59 Nr. 8, 11, 14"
     },
     {
-      id: 4, nr: "2.5", titel: "Potenzgesetze und ihre Anwendung", seiten: "S. 64–71",
+      id: 4, nr: "4", titel: "Potenzgesetze und ihre Anwendung", seiten: "S. 64–71",
       merke: `<p><b>P1</b> gleiche Basis: ${P("a", "m")} · ${P("a", "n")} = ${P("a", "m+n")} und ${P("a", "m")} : ${P("a", "n")} = ${P("a", "m−n")}</p>
         <p><b>P2</b> gleicher Exponent: ${P("a", "n")} · ${P("b", "n")} = ${P("(a · b)", "n")} und ${P("a", "n")} : ${P("b", "n")} = ${P("(a : b)", "n")}</p>
         <p><b>P3</b> Potenz einer Potenz: ${P(`(${P("a", "m")})`, "n")} = ${P("a", "m · n")}</p>
@@ -63,7 +64,7 @@
   const THEMEN = {
     nat: { abschnitt: 1, name: "Potenzen mit natürlichen Exponenten", merke: `${P("a", "n")} ist ein Produkt aus n gleichen Faktoren a. Bei negativer Basis entscheidet der Exponent über das Vorzeichen: gerade → positiv, ungerade → negativ.`, tipps: [`Klammer beachten: ${P("(−2)", 4)} = 16, aber −${P(2, 4)} = −16.`, "Brüche: Zähler und Nenner einzeln potenzieren."], buch: "S. 44 (1) und S. 46 Nr. 2, 8" },
     neg: { abschnitt: 1, name: "Negative Exponenten", merke: `${P("a", "−n")} = ${B(1, P("a", "n"))} für a ≠ 0. Bei Brüchen: ${P(`(${B("a", "b")})`, "−n")} = ${P(`(${B("b", "a")})`, "n")}.`, tipps: [`${P(3, -2)} ist positiv: ${B(1, 9)}, nicht −9.`, `${P(0, -1)} ist nicht definiert.`], buch: "S. 45 (2) und S. 46 Nr. 6, 9; S. 47 Nr. 13" },
-    null: { abschnitt: 1, name: "Exponent null", merke: `${P("a", 0)} = 1 für jede Zahl a ≠ 0 (im Buch auch ${P(0, 0)} = 1).`, tipps: [`${P(7, 0)} = 1, nicht 0 und nicht 7.`], buch: "S. 44 Definition und S. 46 Nr. 6" },
+    null: { abschnitt: 1, name: "Exponent null", merke: `${P("a", 0)} = 1 für jede Zahl a ≠ 0.`, tipps: [`${P(7, 0)} = 1, nicht 0 und nicht 7.`], buch: "S. 44 Definition und S. 46 Nr. 6" },
     zehn: { abschnitt: 1, name: "Zehnerpotenzen und Vorsilben", merke: `${P(10, "n")} ist eine 1 mit n Nullen, ${P(10, "−n")} hat die 1 an der n-ten Stelle nach dem Komma.`, tipps: ["Mikro (µ) = 10⁻⁶, Nano = 10⁻⁹, Giga = 10⁹, Tera = 10¹²."], buch: "S. 45 (3), (4) und S. 46 Nr. 2" },
     gross: { abschnitt: 2, name: "Große Zahlen mit Zehnerpotenz", merke: `Vorfaktor zwischen 1 und 10, Exponent = Anzahl der Stellen, um die das Komma nach rechts wandert: 38 000 = ${WS(3.8, 4)}.`, tipps: [`${WS(38, 3)} hat den richtigen Wert, aber keinen Vorfaktor zwischen 1 und 10.`], buch: "S. 49 Beispiel und Nr. 1, 3" },
     klein: { abschnitt: 2, name: "Kleine Zahlen mit Zehnerpotenz", merke: `Bei Zahlen zwischen 0 und 1 ist der Exponent negativ: 0,0052 = ${WS(5.2, -3)}.`, tipps: ["Zähle die Stellen bis hinter die erste von null verschiedene Ziffer."], buch: "S. 49 und S. 50 Nr. 7, 8; S. 51 Nr. 9" },
@@ -85,7 +86,7 @@
   // ───────────── Übungen ─────────────
   // Je Abschnitt fünf Übungen; id "Abschnitt-Nummer".
   const UEBUNGEN = [
-    // ── 2.1 ──
+    // ── Abschnitt 1 ──
     {
       id: "1-1", abschnitt: 1, niveau: 1, titel: "Potenzen mit natürlichen Exponenten",
       einleitung: `Eine Potenz ${P("a", "n")} ist ein Produkt aus n gleichen Faktoren a. Berechne ohne Taschenrechner. Brüche darfst du als Bruch (z. B. 3/4) oder als Dezimalzahl eingeben.`,
@@ -195,7 +196,7 @@
           weg: `Bei gerader Anzahl von Faktoren −1 ist das Produkt 1, bei ungerader −1. Auch ${P("(−1)", 0)} = 1 passt dazu.` }
       ]
     },
-    // ── 2.2 ──
+    // ── Abschnitt 2 ──
     {
       id: "2-1", abschnitt: 2, niveau: 1, titel: "Große Zahlen kurz schreiben",
       einleitung: `Schreibe mit abgetrennter Zehnerpotenz: Vorfaktor zwischen 1 und 10, dann · ${P(10, "n")}. Beispiel: 52 000 = ${WS(5.2, 4)}.`,
@@ -286,7 +287,7 @@
           weg: `8 · ${P(10, -6)} L = 8 · ${P(10, -6)} · ${P(10, 3)} mL = 8 · ${P(10, -3)} mL = 0,008 mL` }
       ]
     },
-    // ── 2.3 ──
+    // ── Abschnitt 3 ──
     {
       id: "3-1", abschnitt: 3, niveau: 1, titel: "n-te Wurzeln",
       einleitung: `Die n-te Wurzel ${W("n", "a")} (a ≥ 0) ist die nichtnegative Zahl, die hoch n genommen a ergibt. Beispiel: ${W(3, 64)} = 4, denn ${P(4, 3)} = 64.`,
@@ -395,7 +396,7 @@
           weg: `Nach Definition ist ${W(4, 16)} die nichtnegative Zahl mit vierter Potenz 16, also 2. ${W(4, "−16")} ist nicht definiert.` }
       ]
     },
-    // ── 2.5 ──
+    // ── Abschnitt 4 ──
     {
       id: "4-1", abschnitt: 4, niveau: 1, titel: "Gleiche Basis: Exponenten addieren",
       einleitung: `Potenzgesetz P1: ${P("a", "m")} · ${P("a", "n")} = ${P("a", "m+n")} und ${P("a", "m")} : ${P("a", "n")} = ${P("a", "m−n")} (a ≠ 0). Berechne ohne Taschenrechner.`,

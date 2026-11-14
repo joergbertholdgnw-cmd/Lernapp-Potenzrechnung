@@ -1,4 +1,4 @@
-# Lernapp „Potenzen“ (Jahrgang 10)
+# Lernapp „Rechnen mit Potenzen“ (Jahrgang 10)
 
 Gymnasium Neu Wulmstorf, Fachgruppe Mathematik. Die App ist unter GitHub Pages veröffentlicht: Lernapp unter `index.html`, Lehrerbereich unter `admin.html`.
 
@@ -6,15 +6,15 @@ Lernapp zum Kapitel „Potenzen“ von Elemente der Mathematik 10 (Niedersachsen
 
 | Abschnitt | Buch | Inhalt |
 |---|---|---|
-| 2.1 Potenzen mit ganzzahligen Exponenten | S. 43–48 | natürliche und negative Exponenten, Exponent null, Zehnerpotenzen und Vorsilben |
-| 2.2 Zahlen mit abgetrennten Zehnerpotenzen | S. 49–51, 62–63 | große und kleine Zahlen, Einheiten, Licht und Weltall, ppm und ppb |
-| 2.3 Potenzen mit rationalen Exponenten | S. 52–59 | n-te Wurzeln, a^(1/n), a^(m/n), Wurzel- und Potenzschreibweise |
-| 2.5 Potenzgesetze und ihre Anwendung | S. 64–71 | P1–P3, Summen von Potenzen, Terme mit Variablen, Überschläge |
+| 1 Potenzen mit ganzzahligen Exponenten | S. 43–48 | natürliche und negative Exponenten, Exponent null, Zehnerpotenzen und Vorsilben |
+| 2 Zahlen mit abgetrennten Zehnerpotenzen | S. 49–51, 62–63 | große und kleine Zahlen, Einheiten, Licht und Weltall, ppm und ppb |
+| 3 Potenzen mit rationalen Exponenten | S. 52–59 | n-te Wurzeln, a^(1/n), a^(m/n), Wurzel- und Potenzschreibweise |
+| 4 Potenzgesetze und ihre Anwendung | S. 64–71 | P1–P3, Summen von Potenzen, Terme mit Variablen, Überschläge |
 
 Abschnitt 2.4 (irrationale Exponenten) ist absichtlich nicht enthalten.
 
-- Jeder Abschnitt enthält Merkwissen mit Verweisen auf Buchseiten und -aufgaben sowie fünf Übungen (★ bis ★★★). Jede Teilaufgabe hat zwei gestufte Hilfen und einen Lösungsweg auf Wunsch. Bei Rechenaufgaben gibt es zwei Versuche, bei Auswahlfragen einen.
-- Am Ende jedes Abschnitts steht ein **Test zur Selbstkontrolle** mit acht Fragen ohne Hilfen. Jeder neue Durchgang erzeugt neue Zahlen. Nach der Abgabe zeigt die App die Lösungen und empfiehlt je verfehltem Thema Merkwissen und Buchaufgaben.
+- Die App nennt keine Buchseiten; die Spalte „Buch“ oben dient nur der Planung. Jeder Abschnitt enthält Merkwissen und fünf Übungen (★ bis ★★★). Jede Teilaufgabe hat zwei gestufte Hilfen und einen Lösungsweg auf Wunsch. Bei Rechenaufgaben gibt es zwei Versuche, bei Auswahlfragen einen.
+- Am Ende jedes Abschnitts steht ein **Test zur Selbstkontrolle** mit acht Fragen ohne Hilfen. Jeder neue Durchgang erzeugt neue Zahlen. Nach der Abgabe zeigt die App die Lösungen und empfiehlt je verfehltem Thema das passende Merkwissen.
 - Zum Schluss gibt es auf der Übersichtsseite einen **Abschlusstest über alle Abschnitte**: 12 Fragen, je 3 aus jedem Abschnittstest, bei jedem Durchgang neu ausgewählt und mit neuen Zahlen. Nach der Abgabe zeigt die App das Ergebnis je Abschnitt und führt direkt in den Abschnitt, in dem noch geübt werden sollte.
 - Eingaben: Brüche (3/4), Dezimalzahlen mit Komma oder Punkt; Zehnerpotenzen mit getrenntem Vorfaktor und Exponenten (der Vorfaktor muss zwischen 1 und 10 liegen). Nicht abbrechende Werte gelten auf zwei Nachkommastellen gerundet als richtig.
 - Anmeldung, Gerätebindung, Abmelden und Lehrerbereich funktionieren wie bei der App „Kosinussatz mit Sternen“.

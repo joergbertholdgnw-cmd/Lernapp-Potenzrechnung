@@ -16,7 +16,7 @@
   function zeigeAnmeldung(meldung) {
     wurzel.innerHTML = `
       <section class="karte">
-        <h1>Lehrerbereich: Potenzen</h1>
+        <h1>Lehrerbereich: Rechnen mit Potenzen</h1>
         ${Speicher.istDemo() ? '<p class="hinweis-demo">Demo-Modus: Es ist noch kein Google-Skript eingetragen. Angezeigt werden nur Ergebnisse, die auf diesem Gerät entstanden sind. Das Passwort wird erst mit dem Google-Skript geprüft.</p>' : ""}
         <form id="login" class="formular">
           <label>Passwort <input type="password" id="pw" required autocomplete="current-password"></label>
@@ -106,7 +106,7 @@
     else {
       html += `<section class="karte"><h2>Übersicht je Abschnitt</h2>
         <p class="klein"><b>Ü</b> = Übungen gelöst ohne Lösungsweg (von 5), <b>Test</b> = bestes Testergebnis in % (Anzahl der Durchgänge), <b>Abschlusstest</b> = 12 Fragen aus allen Abschnitten. Klick auf einen Namen zeigt alle Einzelheiten. 🔒 = Name an ein Gerät gebunden, ⚠ = Ergebnisse von mehreren Geräten.</p>
-        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">Wiederholen</th></tr>
+        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">Wiederholen</th></tr>
         <tr>${ABSCHNITTE.map(() => "<th>Ü</th><th>Test</th>").join("")}</tr></thead><tbody>`;
       personen.forEach((p, i) => {
         html += `<tr class="klickbar" data-person="${i}"><td>${esc(p.name)} ${bindungen[schluessel(p.name)] ? '<span title="an ein Gerät gebunden">🔒</span>' : ""} ${p.geraete.size > 1 ? `<span title="${p.geraete.size} Geräte">⚠</span>` : ""}</td>`;

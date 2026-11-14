@@ -1,4 +1,4 @@
-/* Lernapp „Potenzen“ – Navy und Hellgrau aus dem GNW-Hausstil (stil/hausstil.json), Cambria für Text und Formeln. */
+/* Lernapp „Rechnen mit Potenzen“ – Navy und Hellgrau aus dem GNW-Hausstil (stil/hausstil.json), Cambria für Text und Formeln. */
 :root {
   --navy: #1f3864; --grau: #edeff3; --text: #000000; --bg: #ffffff; --karte: #ffffff;
   --linie: #c9cfdb; --gedaempft: #4f586b; --knopf-text: #ffffff; --stern: #b7791f;
@@ -70,6 +70,10 @@ input.haken { width: auto; display: inline; margin-right: 6px; }
 .fortschritt > div:last-child { flex: 1; min-width: 220px; }
 .fortschritt h2 { margin-top: 0; }
 .raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+/* Die vier Abschnitte stehen nebeneinander; auf schmalen Bildschirmen zwei je Reihe */
+.raster.abschnitte { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 760px) { .raster.abschnitte { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.abschnitt-kachel .titel { hyphens: auto; overflow-wrap: break-word; }
 .abschnitt-kachel, .aufgabe-kachel { text-align: left; font: inherit; color: var(--text); background: var(--karte); border: 1px solid var(--linie); border-radius: var(--radius); padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
 .abschnitt-kachel:hover, .aufgabe-kachel:hover { border-color: var(--navy); background: var(--grau); }
 .abschnitt-kachel.ist-fertig, .aufgabe-kachel.ist-fertig { border-color: var(--gut); border-width: 2px; }

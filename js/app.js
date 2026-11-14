@@ -14,6 +14,7 @@
   const testInfo = (ab) => (ab === ABSCHLUSS.id ? ABSCHLUSS : ABSCHNITTE.find((x) => x.id === ab));
   const testZurueck = (ab) => (ab === ABSCHLUSS.id ? zeigeUebersicht : () => zeigeAbschnitt(ab));
   const testOrt = (ab) => (ab === ABSCHLUSS.id ? "alle Abschnitte" : `Abschnitt ${testInfo(ab).nr}`);
+  const abschnittName = (a) => `Abschnitt ${a.nr}: ${a.titel}`;
 
   const LOB = ["Richtig!", "Genau!", "Sauber gelöst!", "Das sitzt!", "Stark!", "Treffer!"];
   const NOCHMAL = ["Noch nicht richtig. Schau dir die Hilfe an.", "Noch nicht ganz. Prüfe Vorzeichen und Klammern.", "Noch nicht richtig. Was sagt das Merkwissen dazu?"];
@@ -111,8 +112,8 @@
   function zeigeStart() {
     app.innerHTML = `
       <section class="karte start">
-        <h1>Potenzen – üben und selbst testen</h1>
-        <p class="lead">Vier Abschnitte passend zum Buch (Elemente der Mathematik 10, Kapitel 2): negative Exponenten, Zehnerpotenzen, rationale Exponenten und Potenzgesetze. In jedem Abschnitt findest du Merkwissen, Übungen mit Hilfen und am Ende einen Test zur Selbstkontrolle.</p>
+        <h1>Rechnen mit Potenzen</h1>
+        <p class="lead">Vier Abschnitte: negative Exponenten, Zehnerpotenzen, rationale Exponenten und Potenzgesetze. In jedem Abschnitt findest du Merkwissen, Übungen mit Hilfen und am Ende einen Test zur Selbstkontrolle.</p>
         <ul class="legende">
           <li><b>★</b> Basis: Grundaufgaben</li>
           <li><b>★★</b> Standard: Aufgaben, die mehrere Schritte brauchen</li>
@@ -213,7 +214,7 @@
         <div>
           <h2>${fertig === 0 ? "Willkommen!" : fertig === gesamt && tests === 4 && besterTest(ABSCHLUSS.id) !== null ? "Alles geschafft!" : "Dein Fortschritt"}</h2>
           <p>${fertig} von ${gesamt} Übungen erledigt, ${tests} von 4 Abschnittstests gemacht${besterTest(ABSCHLUSS.id) !== null ? `, Abschlusstest: bestes Ergebnis ${besterTest(ABSCHLUSS.id)} %` : ""}.</p>
-          ${naechster ? `<button class="knopf haupt" data-abschnitt="${naechster.id}">Weiter mit ${naechster.nr} ${esc(naechster.titel)}</button>` : ""}
+          ${naechster ? `<button class="knopf haupt" data-abschnitt="${naechster.id}">Weiter mit ${esc(abschnittName(naechster))}</button>` : ""}
         </div>
       </section>`;
 
@@ -222,12 +223,12 @@
         <div class="chips">${schwach.map((s) => `<button class="chip" data-karte="${s}">${THEMEN[s].name}</button>`).join("")}</div></section>`;
     }
 
-    html += `<h2 class="abschnitte-titel">Abschnitte</h2><div class="raster">`;
+    html += `<h2 class="abschnitte-titel">Abschnitte</h2><div class="raster abschnitte">`;
     for (const a of ABSCHNITTE) {
       const f = fertigeUebungen(a.id).length, n = uebungenVon(a.id).length, b = besterTest(a.id);
       const ganz = f === n && b !== null;
       html += `<button class="abschnitt-kachel ${ganz ? "ist-fertig" : ""}" data-abschnitt="${a.id}">
-        <span class="nr">Abschnitt ${a.nr} · Buch ${a.seiten}</span>
+        <span class="nr">Abschnitt ${a.nr}</span>
         <span class="titel">${esc(a.titel)}</span>
         <span class="mini-balken"><span style="width:${(100 * f) / n}%"></span></span>
         <span class="klein">Übungen ${f}/${n} · Test: ${b === null ? "noch offen" : `bestes Ergebnis ${b} %`}</span>
@@ -257,10 +258,9 @@
     const b = besterTest(ab);
     let html = kopf("Übersicht") + `
       <section class="karte">
-        <p class="klein">Abschnitt ${a.nr} · Buch ${a.seiten}</p>
+        <p class="klein">Abschnitt ${a.nr}</p>
         <h1>${esc(a.titel)}</h1>
         <div class="merke">${a.merke}</div>
-        <p class="buch">📖 <b>Im Buch:</b> ${a.buch}</p>
       </section>
       <h2>Übungen</h2><div class="raster">`;
     for (const u of uebungenVon(ab)) {
@@ -294,7 +294,7 @@
     const a = ABSCHNITTE.find((x) => x.id === u.abschnitt);
     uebungStand(uid);
     speichern();
-    let html = kopf(`${a.nr} ${a.titel}`) + `
+    let html = kopf(abschnittName(a)) + `
       <article class="karte aufgabe">
         <p class="sterne gross">${sterne(u.niveau)} <span class="klein">${NIVEAUS[u.niveau]}</span></p>
         <h1>Übung ${u.id.split("-")[1]}: ${esc(u.titel)}</h1>
@@ -456,7 +456,7 @@
     if (ts.abgegeben) { ts.durchgang++; ts.eingaben = {}; ts.abgegeben = false; ts.ergebnis = null; speichern(); }
     const fragen = testFragen(ab, ts);
     const istAbschluss = ab === ABSCHLUSS.id;
-    let html = kopf(istAbschluss ? "Übersicht" : `${a.nr} ${a.titel}`) + `
+    let html = kopf(istAbschluss ? "Übersicht" : abschnittName(a)) + `
       <article class="karte aufgabe">
         <p class="klein">Test zur Selbstkontrolle · ${testOrt(ab)} · Durchgang ${ts.durchgang}</p>
         <h1>${istAbschluss ? `🏁 ${esc(a.titel)}` : `🎯 Test: ${esc(a.titel)}`}</h1>
@@ -522,7 +522,7 @@
     const falscheThemen = [...new Set(fragen.filter((f) => !(ts.eingaben[f.id] != null && bewerte(f, ts.eingaben[f.id]).ok)).map((f) => f.thema))];
     const urteil = prozent === 100 ? "Hervorragend! Du beherrschst diesen Abschnitt." : prozent >= 75 ? "Gut gemacht! Schau dir die Fehler unten noch einmal an." : prozent >= 50 ? "Ordentlich, aber einige Themen solltest du wiederholen." : "Wiederhole die Themen unten mit dem Merkwissen und den Übungen, dann mach einen neuen Test.";
     const richtig = (f) => ts.eingaben[f.id] != null && bewerte(f, ts.eingaben[f.id]).ok;
-    let html = kopf(istAbschluss ? "Übersicht" : `${a.nr} ${a.titel}`) + `
+    let html = kopf(istAbschluss ? "Übersicht" : abschnittName(a)) + `
       <section class="karte ergebnis ${prozent >= 75 ? "feiern" : ""}">
         <p class="klein">Test zur Selbstkontrolle · ${testOrt(ab)} · Durchgang ${ts.durchgang}</p>
         <h1>${punkte} von ${max} Punkten (${prozent} %)</h1>
@@ -532,19 +532,19 @@
     if (istAbschluss) {
       html += `<section class="karte"><h2>Ergebnis je Abschnitt</h2><div class="balken-liste">` + ABSCHNITTE.map((x) => {
         const teil = fragen.filter((f) => f.abschnitt === x.id), n = teil.filter(richtig).length, p = Math.round((100 * n) / teil.length);
-        return `<button class="balken-zeile" data-zum-abschnitt="${x.id}"><span>${x.nr} ${esc(x.titel)}</span><span class="balken"><span style="width:${p}%" class="${p >= 75 ? "gut" : p >= 50 ? "mittel" : "schlecht"}"></span></span><span class="klein">${n}/${teil.length}</span></button>`;
+        return `<button class="balken-zeile" data-zum-abschnitt="${x.id}"><span>${esc(abschnittName(x))}</span><span class="balken"><span style="width:${p}%" class="${p >= 75 ? "gut" : p >= 50 ? "mittel" : "schlecht"}"></span></span><span class="klein">${n}/${teil.length}</span></button>`;
       }).join("") + `</div><p class="klein">Tippe auf einen Abschnitt, um dort weiterzuüben.</p></section>`;
     }
     if (falscheThemen.length) {
       html += `<section class="karte wiederholen"><h2>🔁 Das solltest du wiederholen</h2>` +
-        falscheThemen.map((th) => `<div class="empfehlung"><h3>${istAbschluss ? `${ABSCHNITTE.find((x) => x.id === THEMEN[th].abschnitt).nr} · ` : ""}${THEMEN[th].name}</h3><p>${THEMEN[th].merke}</p><p class="buch">📖 Buch: ${THEMEN[th].buch}</p></div>`).join("") +
+        falscheThemen.map((th) => `<div class="empfehlung"><h3>${istAbschluss ? `Abschnitt ${ABSCHNITTE.find((x) => x.id === THEMEN[th].abschnitt).nr} · ` : ""}${THEMEN[th].name}</h3><p>${THEMEN[th].merke}</p></div>`).join("") +
         `</section>`;
     }
     html += `<section class="karte"><h2>Deine Antworten</h2><ol class="teile">`;
     for (const f of fragen) {
       const ein = ts.eingaben[f.id];
       const ok = ein != null && bewerte(f, ein).ok;
-      html += `<li class="teil ${ok ? "ist-richtig" : "ist-falsch"}"><div class="teil-kopf"><b>Frage ${f.id}</b>${istAbschluss ? ` <span class="klein">· aus ${ABSCHNITTE.find((x) => x.id === f.abschnitt).nr}</span>` : ""}</div><p class="aufgabentext">${f.text}</p>
+      html += `<li class="teil ${ok ? "ist-richtig" : "ist-falsch"}"><div class="teil-kopf"><b>Frage ${f.id}</b>${istAbschluss ? ` <span class="klein">· aus Abschnitt ${ABSCHNITTE.find((x) => x.id === f.abschnitt).nr}</span>` : ""}</div><p class="aufgabentext">${f.text}</p>
         <p class="rueck ${ok ? "gut" : "schlecht"}">${ok ? "✓ Richtig" : "✗ Nicht richtig"} · Deine Antwort: ${ein == null ? "keine" : antwortAnzeige(f, ein)}</p>
         ${ok ? "" : `<p class="klein">Richtig ist: ${f.vor && f.typ !== "auswahl" ? f.vor + " " : ""}${loesungText(f)}${f.einheit && f.typ !== "auswahl" ? " " + f.einheit : ""}</p>`}</li>`;
     }
@@ -564,12 +564,11 @@
       ${automatisch ? `<p class="klein">Bei diesem Thema hat es jetzt ${stand.themaFehler[thema]}-mal nicht geklappt. Eine kurze Wiederholung hilft!</p>` : ""}
       <h2>🔁 ${w.name}</h2>
       <div class="merke"><p>${w.merke}</p></div>
-      ${w.tipps.length ? `<h3>Typische Stolperstellen</h3><ul>${w.tipps.map((t) => `<li>${t}</li>`).join("")}</ul>` : ""}
-      <p class="buch">📖 Buch: ${w.buch}</p>`);
+      ${w.tipps.length ? `<h3>Typische Stolperstellen</h3><ul>${w.tipps.map((t) => `<li>${t}</li>`).join("")}</ul>` : ""}`);
   }
 
   function zeigeMerkwissen() {
-    overlay(`<h2>📘 Merkwissen</h2>` + ABSCHNITTE.map((a) => `<h3>${a.nr} ${a.titel}</h3><div class="merke">${a.merke}</div>`).join(""));
+    overlay(`<h2>📘 Merkwissen</h2>` + ABSCHNITTE.map((a) => `<h3>${abschnittName(a)}</h3><div class="merke">${a.merke}</div>`).join(""));
   }
 
   function abmelden() {
