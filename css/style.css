@@ -1,0 +1,170 @@
+/* Lernapp „Potenzen“ – Navy und Hellgrau aus dem GNW-Hausstil (stil/hausstil.json), Cambria für Text und Formeln. */
+:root {
+  --navy: #1f3864; --grau: #edeff3; --text: #000000; --bg: #ffffff; --karte: #ffffff;
+  --linie: #c9cfdb; --gedaempft: #4f586b; --knopf-text: #ffffff; --stern: #b7791f;
+  --gut: #1d6b3f; --gut-flaeche: #e1f1e8; --mittel: #8a5a00; --mittel-flaeche: #fbf1dc; --schlecht: #9b2c2c; --schlecht-flaeche: #f8e4e4;
+  --serif: Cambria, Georgia, "Times New Roman", serif;
+  --formel: "Cambria Math", Cambria, Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --navy: #9db8ea; --grau: #1e2636; --text: #e8ebf2; --bg: #141a26; --karte: #182031;
+    --linie: #37425a; --gedaempft: #a3aec3; --knopf-text: #101726; --stern: #f2c14e;
+    --gut: #7fd4a1; --gut-flaeche: #17301f; --mittel: #f0c674; --mittel-flaeche: #3a2f17; --schlecht: #f0a1a1; --schlecht-flaeche: #3a1f1f;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--serif); font-size: 1.0625rem; line-height: 1.55;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 2rem max(16px, env(safe-area-inset-left, 0px));
+}
+main, .fuss { max-width: 52rem; margin: 0 auto; }
+main { padding-top: 6px; }
+.fuss { margin-top: 2rem; font-family: var(--sans); font-size: 0.85rem; }
+.fuss a, a { color: var(--navy); }
+
+h1, h2, h3 { color: var(--navy); line-height: 1.25; text-wrap: balance; }
+h1 { font-size: 1.5rem; margin: 0.2em 0 0.4em; }
+h2 { font-size: 1.25rem; margin: 0.6em 0 0.4em; }
+h3 { font-size: 1.05rem; margin: 0.8em 0 0.3em; }
+.klein { font-size: 0.88rem; color: var(--gedaempft); }
+.lead { font-size: 1.05rem; }
+.karte { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--radius); padding: 18px; margin: 14px 0; }
+.sterne { color: var(--stern); letter-spacing: 1px; }
+.stern-leer { color: var(--linie); }
+.sterne.gross { font-size: 1.3rem; margin: 0; }
+
+/* Knöpfe und Formulare */
+.knopf { font: inherit; font-family: var(--sans); font-size: 0.95rem; border-radius: 8px; padding: 9px 15px; border: 1px solid var(--linie); background: var(--karte); color: var(--text); cursor: pointer; min-height: 44px; }
+.knopf.haupt { background: var(--navy); border-color: var(--navy); color: var(--knopf-text); font-weight: 600; }
+.knopf.leise:hover, .chip:hover { background: var(--grau); }
+.knopf.gefahr { background: var(--schlecht); border-color: var(--schlecht); color: var(--knopf-text); }
+.knopf:focus-visible, .aufgabe-kachel:focus-visible, .abschnitt-kachel:focus-visible, input:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+.knopf:disabled { opacity: 0.6; cursor: wait; }
+.link { background: none; border: 0; color: var(--navy); cursor: pointer; font: inherit; font-size: 0.88rem; text-decoration: underline; padding: 0; }
+.knopfreihe { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.formular label { display: block; margin: 10px 0; font-weight: 600; }
+input { font: inherit; font-family: var(--formel); padding: 9px 11px; border: 1px solid var(--linie); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; max-width: 320px; }
+.formular input { display: block; margin-top: 4px; }
+input.kurz { max-width: 90px; }
+input.haken { width: auto; display: inline; margin-right: 6px; }
+.fehler { color: var(--schlecht); font-size: 0.92rem; margin: 6px 0 0; min-height: 0; }
+.fehler:empty { display: none; }
+.legende { list-style: none; padding: 0; }
+.legende b { color: var(--stern); display: inline-block; width: 3.2em; }
+
+.leiste { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.leiste h1, .leiste h2 { margin: 0; }
+.hinweis-demo { background: var(--mittel-flaeche); border-radius: 8px; padding: 8px 12px; font-size: 0.92rem; }
+
+/* Übersicht */
+.fortschritt { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.ring { --p: 0; width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center; flex: none; background: conic-gradient(var(--navy) calc(var(--p) * 1%), var(--grau) 0); }
+.ring span { background: var(--karte); width: 78px; height: 78px; border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem; font-weight: 700; }
+.ring small { font-size: 0.85rem; color: var(--gedaempft); }
+.fortschritt > div:last-child { flex: 1; min-width: 220px; }
+.fortschritt h2 { margin-top: 0; }
+.raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.abschnitt-kachel, .aufgabe-kachel { text-align: left; font: inherit; color: var(--text); background: var(--karte); border: 1px solid var(--linie); border-radius: var(--radius); padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
+.abschnitt-kachel:hover, .aufgabe-kachel:hover { border-color: var(--navy); background: var(--grau); }
+.abschnitt-kachel.ist-fertig, .aufgabe-kachel.ist-fertig { border-color: var(--gut); border-width: 2px; }
+.abschnitt-kachel .nr, .aufgabe-kachel .nr { font-family: var(--sans); font-size: 0.8rem; color: var(--gedaempft); }
+.abschnitt-kachel .titel, .aufgabe-kachel .titel { font-weight: 700; color: var(--navy); }
+.mini-balken { height: 8px; background: var(--grau); border-radius: 99px; overflow: hidden; }
+.mini-balken span { display: block; height: 100%; background: var(--navy); }
+.status { font-family: var(--sans); font-size: 0.8rem; align-self: flex-start; border-radius: 99px; padding: 2px 10px; background: var(--grau); color: var(--gedaempft); }
+.status.fertig { background: var(--gut-flaeche); color: var(--gut); font-weight: 600; }
+.status.begonnen { background: var(--mittel-flaeche); color: var(--mittel); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-family: var(--sans); font-size: 0.9rem; border: 1px solid var(--navy); color: var(--navy); background: var(--karte); border-radius: 99px; padding: 6px 14px; cursor: pointer; }
+.wiederholen { border-color: var(--mittel); background: var(--mittel-flaeche); }
+.wiederholen .empfehlung { border-top: 1px solid var(--linie); padding-top: 4px; }
+.wiederholen .empfehlung:first-of-type { border-top: 0; }
+
+/* Merkwissen */
+.merke { background: var(--grau); border-left: 4px solid var(--navy); border-radius: 0 8px 8px 0; padding: 4px 14px; margin: 10px 0; }
+.merke p { margin: 0.5em 0; }
+.formel { font-family: var(--formel); }
+.buch { font-size: 0.95rem; }
+.test-karte { border: 2px solid var(--navy); }
+
+/* Aufgaben */
+.einleitung { font-size: 1.05rem; }
+.teile { padding-left: 0; list-style: none; }
+.teil { border-top: 1px solid var(--linie); padding: 12px 0; }
+.teil:first-child { border-top: 0; }
+.teil-kopf { font-family: var(--sans); color: var(--navy); }
+.aufgabentext { font-family: var(--formel); font-size: 1.1rem; margin: 6px 0; }
+.hilfe { background: var(--grau); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+.eingabe-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.eingabe-zeile input { width: 11rem; }
+.eingabe-zeile.wiss input.vorfaktor { width: 7rem; }
+.eingabe-zeile.wiss input.exponent { width: 4.5rem; align-self: flex-start; font-size: 0.9rem; padding: 5px 8px; }
+.mal { font-family: var(--formel); font-size: 1.1rem; }
+.vor, .einheit { font-family: var(--formel); }
+.auswahl { border: 0; padding: 0; margin: 6px 0 0; }
+.option { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--linie); border-radius: 8px; margin: 6px 0; cursor: pointer; font-family: var(--formel); }
+.option:hover { background: var(--grau); }
+.option input { width: auto; margin-top: 0.35em; flex: none; }
+.rueck { border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.rueck.gut { background: var(--gut-flaeche); color: var(--gut); }
+.rueck.mittel { background: var(--mittel-flaeche); }
+.rueck.schlecht { background: var(--schlecht-flaeche); color: var(--schlecht); }
+.loesungsweg { background: var(--grau); border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-family: var(--formel); }
+.loesungsweg summary { cursor: pointer; font-family: var(--sans); font-size: 0.9rem; color: var(--navy); }
+.ergebnis { border: 2px solid var(--navy); }
+.ergebnis.feiern { border-color: var(--gut); background: var(--gut-flaeche); }
+.ist-falsch .aufgabentext { color: var(--text); }
+
+/* Formelsatz: Brüche, Wurzeln, Exponenten */
+sup { font-size: 0.72em; line-height: 0; }
+.bruch { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.92em; margin: 0 0.12em; line-height: 1.15; }
+.bruch > span:first-child { border-bottom: 1px solid currentColor; padding: 0 0.15em; }
+.bruch > span:last-child { padding: 0 0.15em; }
+sup .bruch { font-size: 0.85em; }
+.wurzel { white-space: nowrap; }
+.wurzel .index { font-size: 0.65em; margin-right: -0.35em; vertical-align: 0.9em; }
+.radikand { display: inline-block; border-top: 1px solid currentColor; padding: 0.1em 0.1em 0; margin-left: 0.05em; line-height: 1.15; }
+.wurzel:has(.bruch) { display: inline-flex; align-items: center; }
+.wurzel:has(.bruch) .index { align-self: flex-start; vertical-align: 0; margin-top: 0.1em; }
+
+/* Lehrerbereich */
+.kennzahlen { display: flex; flex-wrap: wrap; gap: 12px; }
+.kennzahl { flex: 1; min-width: 140px; background: var(--grau); border-radius: 8px; padding: 10px; font-size: 0.9rem; }
+.kennzahl b { display: block; font-size: 1.5rem; color: var(--navy); }
+.tabelle-huelle { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.9rem; width: 100%; }
+th, td { border: 1px solid var(--linie); padding: 5px 7px; text-align: left; vertical-align: top; }
+th { background: var(--grau); color: var(--navy); }
+.zelle { text-align: center; white-space: nowrap; }
+.zelle.gut { background: var(--gut-flaeche); color: var(--gut); }
+.zelle.mittel { background: var(--mittel-flaeche); }
+.zelle.schlecht { background: var(--schlecht-flaeche); color: var(--schlecht); }
+.klickbar { cursor: pointer; }
+.klickbar:hover td:first-child { text-decoration: underline; }
+.lw-marke { color: var(--schlecht); }
+.balken-liste { display: grid; gap: 6px; }
+.balken-zeile { display: grid; grid-template-columns: minmax(130px, 1.4fr) 2fr auto; gap: 10px; align-items: center; font-size: 0.92rem; }
+button.balken-zeile { font: inherit; font-size: 0.92rem; background: none; border: 0; border-radius: 6px; color: var(--text); text-align: left; cursor: pointer; padding: 4px 6px; width: 100%; }
+button.balken-zeile:hover { background: var(--grau); }
+.balken { height: 10px; background: var(--grau); border-radius: 99px; overflow: hidden; }
+.balken span { display: block; height: 100%; }
+.balken .gut { background: var(--gut); } .balken .mittel { background: var(--mittel); } .balken .schlecht { background: var(--schlecht); }
+
+/* Überlagerungen */
+.overlay { position: fixed; inset: 0; background: rgba(10, 16, 30, 0.55); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.overlay-box { background: var(--karte); border-radius: var(--radius); padding: 20px; max-width: 40rem; width: 100%; max-height: 90vh; overflow-y: auto; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--navy); color: var(--knopf-text); padding: 10px 18px; border-radius: 99px; font-family: var(--sans); z-index: 20; transition: opacity 0.4s; max-width: calc(100% - 32px); text-align: center; }
+.toast.weg { opacity: 0; }
+
+@media (max-width: 520px) {
+  .eingabe-zeile input { width: 100%; max-width: none; }
+  .eingabe-zeile.wiss input.vorfaktor { width: 6rem; }
+  .balken-zeile { grid-template-columns: 1fr; gap: 2px; }
+}
+@media print { .knopf, .fuss, .leiste { display: none; } }
