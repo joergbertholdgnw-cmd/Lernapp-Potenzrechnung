@@ -90,6 +90,16 @@ input.haken { width: auto; display: inline; margin-right: 6px; }
 .wiederholen .empfehlung { border-top: 1px solid var(--linie); padding-top: 4px; }
 .wiederholen .empfehlung:first-of-type { border-top: 0; }
 
+/* Beherrschung, Sperre und Training */
+.abschnitt-kachel .status { white-space: normal; }
+.sperre { background: var(--mittel-flaeche); border-left: 4px solid var(--mittel); border-radius: 0 8px 8px 0; padding: 6px 14px 10px; margin-top: 10px; }
+.training-stand { font-family: var(--sans); font-size: 0.92rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.punkte { display: inline-flex; gap: 6px; }
+.punkt { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--navy); display: inline-block; }
+.punkt.voll { background: var(--gut); border-color: var(--gut); }
+.ergebnis.feiern { padding: 4px 14px 12px; border-radius: 8px; }
+.hilfe ul { margin: 4px 0 0; }
+
 /* Merkwissen */
 .merke { background: var(--grau); border-left: 4px solid var(--navy); border-radius: 0 8px 8px 0; padding: 4px 14px; margin: 10px 0; }
 .merke p { margin: 0.5em 0; }

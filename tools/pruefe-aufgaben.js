@@ -78,17 +78,27 @@ function pruefeTeil(name, t, still) {
   // Die angezeigte Lösung muss als Eingabe akzeptiert werden
   const anzeige = A.loesungText(t).replace(/<[^>]+>/g, "").replace(/[≈=].*$/, "").trim();
   const loes = (t.loesung || "").split(/[=≈]/).map((s) => s.trim()).filter((s) => /^[−\-\d]/.test(s) && !/[√^(]/.test(s));
-  for (const x of [anzeige, ...loes]) if (x && !/[√^(]/.test(x) && !istRichtig(x, t.wert, t.toleranz)) melde(`${name}: angezeigte Lösung „${x}“ wird abgelehnt (Soll ${t.wert})`);
-  if (!istRichtig(deutsch(t.wert), t.wert, t.toleranz) && !istRichtig(String(Math.round(t.wert * 100) / 100).replace(".", ","), t.wert, t.toleranz)) melde(`${name}: Sollwert als Eingabe wird abgelehnt`);
+  const regeln = { toleranz: t.toleranz, exakt: t.exakt, stellen: t.stellen };
+  for (const x of [anzeige, ...loes]) if (x && !/[√^(]/.test(x) && !istRichtig(x, t.wert, regeln)) melde(`${name}: angezeigte Lösung „${x}“ wird abgelehnt (Soll ${t.wert})`);
+  if (!istRichtig(deutsch(t.wert), t.wert, regeln) && !istRichtig(String(Math.round(t.wert * 100) / 100).replace(".", ","), t.wert, regeln)) melde(`${name}: Sollwert als Eingabe wird abgelehnt`);
+  // A3: Exponenten von Variablen nur exakt
+  if (t.vor && /^[a-z] hoch$/.test(t.vor) && !t.exakt) melde(`${name}: Exponent ist nicht als „exakt“ markiert`);
+  // A2: Aufgaben mit „Runde auf … Nachkommastellen“ müssen die Stellenzahl prüfen
+  if (/Runde auf zwei Nachkommastellen/.test(t.text) && t.stellen !== 2) melde(`${name}: verlangt zwei Nachkommastellen, prüft sie aber nicht`);
+  if (/als Bruch an/.test(t.text) && !t.exakt) melde(`${name}: verlangt einen Bruch, nimmt aber gerundete Werte an`);
 }
 
 // Eingabe-Erkennung
 const faelle = [["3/4", 0.75], ["−1/8", -0.125], ["0,0625", 0.0625], ["2,5·10^-3", 0.0025], ["2,5*10^(-3)", 0.0025], ["1 000", 1000], ["1.069,5", 1069.5], ["7.5e-1", 0.75], ["−3", -3]];
 for (const [ein, soll] of faelle) if (!zahlenAusEingabe(ein).some((x) => Math.abs(x - soll) < 1e-12)) melde(`Eingabe „${ein}“ wird nicht als ${soll} erkannt`);
-const sollFalsch = [["0,3", 1 / 3], ["0,06", 1 / 16], ["1,4", Math.SQRT2], ["−9", 1 / 9], ["6", 5]];
-for (const [ein, soll] of sollFalsch) if (istRichtig(ein, soll)) melde(`Eingabe „${ein}“ gilt fälschlich als richtig für ${soll}`);
-const sollRichtig = [["0,33", 1 / 3], ["1/3", 1 / 3], ["1,41", Math.SQRT2], ["8/7", 8 / 7], ["1,14", 8 / 7]];
-for (const [ein, soll] of sollRichtig) if (!istRichtig(ein, soll)) melde(`Eingabe „${ein}“ wird für ${soll} abgelehnt`);
+// Regeln: abbrechende Werte exakt, sonst mindestens zwei geltende Ziffern richtig gerundet;
+// „stellen“ verlangt Nachkommastellen, „exakt“ nur den genauen Wert (Befunde A2 und A3 des Gutachtens)
+const sollFalsch = [["0,3", 1 / 3], ["0,06", 1 / 16], ["0,04", 1 / 27], ["1,15", 8 / 7], ["1,4", Math.SQRT2, { stellen: 2 }], ["1,42", Math.SQRT2, { stellen: 2 }],
+  ["0,67", 2 / 3, { exakt: true }], ["0,83", 5 / 6, { exakt: true }], ["0,11", 1 / 9, { exakt: true }], ["−9", 1 / 9], ["6", 5]];
+for (const [ein, soll, o] of sollFalsch) if (istRichtig(ein, soll, o)) melde(`Eingabe „${ein}“ gilt fälschlich als richtig für ${soll} ${JSON.stringify(o || {})}`);
+const sollRichtig = [["0,33", 1 / 3], ["1/3", 1 / 3], ["0,037", 1 / 27], ["0,14", 1 / 7], ["1,41", Math.SQRT2, { stellen: 2 }], ["1,414", Math.SQRT2, { stellen: 2 }], ["8/7", 8 / 7], ["1,14", 8 / 7],
+  ["2/3", 2 / 3, { exakt: true }], ["1,5", 1.5, { exakt: true }], ["−1/2", -0.5, { exakt: true }], ["9,46·10^12", 9.45e12, { toleranz: 0.01 }]];
+for (const [ein, soll, o] of sollRichtig) if (!istRichtig(ein, soll, o)) melde(`Eingabe „${ein}“ wird für ${soll} abgelehnt ${JSON.stringify(o || {})}`);
 
 const n = A.UEBUNGEN.reduce((s, u) => s + u.teile.length, 0);
 console.log(fehler ? `\n${fehler} Fehler gefunden.` : `Alles in Ordnung: ${A.UEBUNGEN.length} Übungen mit ${n} Teilaufgaben, 4 Abschnittstests und Abschlusstest × 400 Startwerte.`);

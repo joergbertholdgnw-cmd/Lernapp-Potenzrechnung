@@ -30,7 +30,7 @@
   const ABSCHNITTE = [
     {
       id: 1, nr: "1", titel: "Potenzen mit ganzzahligen Exponenten", seiten: "S. 43–48",
-      merke: `<p>Für eine Zahl a und eine natürliche Zahl n ≥ 2 ist ${P("a", "n")} = a · a · … · a (n Faktoren). Dazu gilt ${P("a", 1)} = a und ${P("a", 0)} = 1.</p>
+      merke: `<p>Für eine Zahl a und eine natürliche Zahl n ≥ 2 ist ${P("a", "n")} = a · a · … · a (n Faktoren). Dazu gilt ${P("a", 1)} = a und für a ≠ 0 auch ${P("a", 0)} = 1.</p>
         <p>Für a ≠ 0 gilt ${P("a", "−n")} = ${B(1, P("a", "n"))}. Ein negativer Exponent bedeutet also „Kehrwert“, nicht „negative Zahl“: ${P(2, -3)} = ${B(1, 8)}.</p>
         <p>Achte auf Klammern: ${P("(−3)", 2)} = 9, aber −${P(3, 2)} = −9.</p>`,
       buch: "Information S. 44–45, Übungen S. 46 Nr. 2, 3, 6, 8, 9; S. 47 Nr. 13, 16; S. 48 Nr. 23"
@@ -354,7 +354,7 @@
     },
     {
       id: "3-4", abschnitt: 3, niveau: 2, titel: "Zwischen Wurzel und Potenz wechseln",
-      einleitung: `Es gilt x > 0. Schreibe als Potenz von x und gib den Exponenten an, als Bruch (z. B. 2/3) oder als Dezimalzahl.`,
+      einleitung: `Es gilt x > 0. Schreibe als Potenz von x. Gib den Exponenten als Bruch an, z. B. 2/3.`,
       teile: [
         { id: "a", thema: "umform", text: W(3, P("x", 2)), vor: "x hoch", wert: 2 / 3, loesung: "2/3", pruef: "ex(root(x**2,3))",
           hilfen: ["Der Wurzelexponent wird zum Nenner des Exponenten.", `${W("n", P("x", "m"))} = ${P("x", "m/n")}`],
@@ -378,10 +378,10 @@
       id: "3-5", abschnitt: 3, niveau: 3, titel: "Bakterien, Basen und Abschätzungen",
       einleitung: `Eine Bakterienkultur verdoppelt ihr Volumen jede Stunde. Zu Beginn ist sie 1 cm³ groß, nach t Stunden V(t) = ${P(2, "t")} cm³ – auch für Bruchteile von Stunden.`,
       teile: [
-        { id: "a", thema: "stamm", text: "Wie groß ist die Kultur nach einer halben Stunde? Runde auf zwei Nachkommastellen.", einheit: "cm³", wert: Math.SQRT2, loesung: "√2 ≈ 1,41", pruef: "sqrt(2)",
+        { id: "a", thema: "stamm", text: "Wie groß ist die Kultur nach einer halben Stunde? Runde auf zwei Nachkommastellen.", einheit: "cm³", stellen: 2, wert: Math.SQRT2, loesung: "√2 ≈ 1,41", pruef: "sqrt(2)",
           hilfen: [`V(½) = ${P(2, "1/2")}`, `${P(2, "1/2")} = ${W(2, 2)}`],
           weg: `V(½) = ${P(2, "1/2")} = ${W(2, 2)} ≈ 1,41 (cm³). Zweimal eine halbe Stunde ergibt den Faktor ${W(2, 2)} · ${W(2, 2)} = 2.` },
-        { id: "b", thema: "rational", text: "Wie groß ist sie nach 1 Stunde 30 Minuten? Runde auf zwei Nachkommastellen.", einheit: "cm³", wert: 2 ** 1.5, loesung: "2^(3/2) ≈ 2,83", pruef: "I(2)**R(3,2)",
+        { id: "b", thema: "rational", text: "Wie groß ist sie nach 1 Stunde 30 Minuten? Runde auf zwei Nachkommastellen.", einheit: "cm³", stellen: 2, wert: 2 ** 1.5, loesung: "2^(3/2) ≈ 2,83", pruef: "I(2)**R(3,2)",
           hilfen: ["1 h 30 min = 3/2 h", `${P(2, "3/2")} = ${W(2, P(2, 3))} = ${W(2, 8)}`],
           weg: `V(3/2) = ${P(2, "3/2")} = ${W(2, 8)} ≈ 2,83 (cm³)` },
         { id: "c", thema: "rational", text: `Für welche Basis b gilt ${P("b", "2/3")} = 16?`, vor: "b =", wert: 64, pruef: "16**R(3,2)",
@@ -538,11 +538,11 @@
       const f = [];
       { const b = w([2, 3]), n = w([3, 4, 5]); f.push({ thema: "nat", text: `${P(`(−${b})`, n)}`, wert: (-b) ** n, pruef: `I(-${b})**${n}` }); }
       { const b = w([2, 3, 4]), n = w([2, 4]); f.push({ thema: "nat", text: `−${P(b, n)}`, wert: -(b ** n), pruef: `-I(${b})**${n}` }); }
-      { const b = w([2, 3, 5]), n = w([2, 3]); f.push({ thema: "neg", text: `${P(b, -n)}`, wert: 1 / b ** n, loesung: `1/${b ** n}`, pruef: `I(${b})**-${n}` }); }
+      { const b = w([2, 3, 5]), n = w([2, 3]); f.push({ thema: "neg", text: `${P(b, -n)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: 1 / b ** n, loesung: `1/${b ** n}`, pruef: `I(${b})**-${n}` }); }
       { const [p, q] = w([[2, 3], [3, 4], [2, 5], [3, 5]]), n = w([2, 3]); const [z, m] = [q ** n, p ** n];
-        f.push({ thema: "neg", text: `${P(`(${B(p, q)})`, -n)}`, wert: z / m, loesung: `${bruchText(z, m)}`, pruef: `R(${p},${q})**-${n}` }); }
+        f.push({ thema: "neg", text: `${P(`(${B(p, q)})`, -n)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: z / m, loesung: `${bruchText(z, m)}`, pruef: `R(${p},${q})**-${n}` }); }
       { const b = w([3, 4, 5, 8]); const [z, n] = kuerze(b + 1, b);
-        f.push({ thema: "null", text: `${P(b, 0)} + ${P(b, -1)}`, wert: (b + 1) / b, loesung: bruchText(z, n), pruef: `I(${b})**0 + I(${b})**-1` }); }
+        f.push({ thema: "null", text: `${P(b, 0)} + ${P(b, -1)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: (b + 1) / b, loesung: bruchText(z, n), pruef: `I(${b})**0 + I(${b})**-1` }); }
       { const k = w([3, 4, 5, 6]); f.push({ thema: "neg", text: `Schreibe ${B(1, 2 ** k)} als Potenz mit der Basis 2.`, vor: "2 hoch", wert: -k, pruef: `log(R(1,${2 ** k}),2)` }); }
       { const [name, e] = w([["Mikrogramm (µg)", -6], ["Nanometer (nm)", -9], ["Milligramm (mg)", -3], ["Gigabyte (GB)", 9], ["Megahertz (MHz)", 6]]);
         const einheit = name.match(/\((.+)\)/)[1].replace(/^(µ|n|m|G|M)/, "");
@@ -584,7 +584,7 @@
       { const [a, m, n] = w([[8, 2, 3], [16, 3, 4], [27, 2, 3], [4, 5, 2], [25, 3, 2], [32, 2, 5]]); const x = Math.round(a ** (m / n));
         f.push({ thema: "rational", text: P(a, `${m}/${n}`), wert: x, pruef: `I(${a})**R(${m},${n})` }); }
       { const [a, m, n] = w([[16, 1, 2], [8, 2, 3], [27, 1, 3], [9, 3, 2], [16, 3, 4]]); const x = Math.round(a ** (m / n));
-        f.push({ thema: "rational", text: P(a, `−${m}/${n}`), wert: 1 / x, loesung: `1/${x}`, pruef: `I(${a})**R(-${m},${n})` }); }
+        f.push({ thema: "rational", text: P(a, `−${m}/${n}`) + ` <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: 1 / x, loesung: `1/${x}`, pruef: `I(${a})**R(-${m},${n})` }); }
       { const [m, n] = w([[2, 3], [3, 4], [2, 5], [3, 2], [5, 3]]); const [z, nn] = kuerze(m, n);
         f.push({ thema: "umform", text: `Schreibe ${W(n, P("x", m))} als Potenz von x (x > 0).`, vor: "x hoch", wert: m / n, loesung: bruchText(z, nn), pruef: `ex(root(x**${m},${n}))` }); }
       { const [m, n] = w([[3, 4], [2, 3], [3, 5], [4, 3]]);
@@ -621,6 +621,23 @@
   };
 
   // Test erzeugen: dieselbe Person, derselbe Abschnitt und derselbe Durchgang ergeben dieselben Fragen.
+  // Ein gerundeter Exponent ist eine andere Zahl (x^0,67 ≠ ∛x²): Exponenten von Variablen nur exakt annehmen.
+  function exponentExakt(t) {
+    if (t.vor && /^[a-z] hoch$/.test(t.vor)) t.exakt = true;
+    return t;
+  }
+  for (const u of UEBUNGEN) u.teile.forEach(exponentExakt);
+
+  // Training je Thema: eine Aufgabe mit neuen Zahlen aus dem Testgenerator des Abschnitts
+  function erzeugeTraining(thema, startwert) {
+    const ab = THEMEN[thema].abschnitt;
+    for (let versuch = 0; versuch < 20; versuch++) {
+      const passend = erzeugeTest(ab, `${startwert}|${versuch}`).filter((f) => f.thema === thema);
+      if (passend.length) return { ...passend[Math.floor(zufall(hash(startwert + "|wahl|" + versuch))() * passend.length)], id: "1" };
+    }
+    return null;
+  }
+
   // Abschlusstest über alle Abschnitte: aus jedem Abschnittstest drei verschiedene Fragen,
   // jeweils aus einem eigenen Zufallsstrom, damit die Zahlen unabhängig vom Abschnittstest sind.
   const ABSCHLUSS = { id: 5, nr: "Abschluss", titel: "Abschlusstest über alle Abschnitte", jeAbschnitt: 3 };
@@ -636,7 +653,7 @@
 
   function erzeugeTest(abschnitt, startwert) {
     const r = zufall(hash(startwert));
-    return TESTS[abschnitt](r).map((fr, i) => ({ id: String(i + 1), typ: "zahl", ...fr }));
+    return TESTS[abschnitt](r).map((fr, i) => exponentExakt({ id: String(i + 1), typ: "zahl", ...fr }));
   }
 
   // Lösung zum Anzeigen
@@ -651,7 +668,7 @@
     return zf(t.wert, 6);
   }
 
-  const daten = { ABSCHNITTE, ABSCHLUSS, THEMEN, NIVEAUS, UEBUNGEN, erzeugeTest, loesungText, hash, zf };
+  const daten = { ABSCHNITTE, ABSCHLUSS, THEMEN, NIVEAUS, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
   const ziel = typeof window !== "undefined" ? window : globalThis;
   Object.assign(ziel, daten);
   if (typeof module !== "undefined") module.exports = daten;

@@ -52,17 +52,33 @@
     return Math.abs(x - Math.round(x)) < 1e-6;
   }
 
-  // toleranz: relative Abweichung bei Sachaufgaben mit Rundung (z. B. 0.01 = 1 %); sonst exakt
-  // bzw. bei nicht abbrechenden Werten auf mindestens zwei Nachkommastellen gerundet.
-  function istRichtig(eingabe, sollwert, toleranz) {
+  // Anzahl der Nachkommastellen und der geltenden Ziffern einer Dezimaleingabe („0,037“ → 3 und 2)
+  function stellenVon(eingabe) {
+    const s = String(eingabe).trim().replace(/[−–+-]/g, "").replace(/\s+/g, "");
+    if (!/^\d*[.,]?\d*$/.test(s)) return { nachkomma: 0, geltend: 0 };
+    const [ganz, komma = ""] = s.split(/[.,]/);
+    const ziffern = (ganz + komma).replace(/^0+/, "");
+    return { nachkomma: komma.length, geltend: ziffern.length };
+  }
+
+  // Regeln:
+  // - optionen.toleranz: relative Abweichung bei Sachaufgaben mit Messwerten (z. B. 0.01 = 1 %)
+  // - optionen.exakt: nur der exakte Wert (Bruch oder abbrechende Dezimalzahl), z. B. bei Exponenten
+  // - optionen.stellen: verlangte Nachkommastellen bei Rundungsaufgaben („Runde auf zwei Nachkommastellen“)
+  // - sonst: abbrechende Werte exakt; nicht abbrechende Werte richtig gerundet mit mindestens zwei geltenden Ziffern
+  // Der dritte Parameter darf aus älteren Aufrufen auch eine Zahl (Toleranz) sein.
+  function istRichtig(eingabe, sollwert, optionen) {
+    const o = typeof optionen === "number" ? { toleranz: optionen } : optionen || {};
     const zahlen = zahlenAusEingabe(eingabe);
-    const nachkomma = (() => { const m = String(eingabe).match(/[.,](\d+)(?!.*[.,])/); return m ? m[1].length : 0; })();
+    const { nachkomma, geltend } = stellenVon(eingabe);
     return zahlen.some((x) => {
       if (Math.abs(x - sollwert) <= 1e-9 * Math.max(1, Math.abs(sollwert))) return true;
-      if (toleranz) return Math.abs(x - sollwert) <= toleranz * Math.abs(sollwert);
-      if (endlich(sollwert) || nachkomma < 2) return false;
-      const gerundet = Math.round(sollwert * 10 ** nachkomma) / 10 ** nachkomma;
-      return Math.abs(x - gerundet) < 1e-9 && Math.abs(x - sollwert) <= 0.015 * Math.abs(sollwert);
+      if (o.exakt) return false;
+      if (o.toleranz) return Math.abs(x - sollwert) <= o.toleranz * Math.abs(sollwert);
+      if (endlich(sollwert)) return false;
+      if (o.stellen ? nachkomma < o.stellen : geltend < 2) return false;
+      // richtig gerundet: Abstand höchstens eine halbe Einheit der letzten angegebenen Stelle
+      return Math.abs(x - sollwert) <= 0.5 * 10 ** -nachkomma + 1e-12;
     });
   }
 

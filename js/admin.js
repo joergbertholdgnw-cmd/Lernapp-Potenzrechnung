@@ -12,6 +12,14 @@
   let daten = [];
   let bindungen = {};
   let plaetze = null; // { belegt, max } vom Google-Skript
+  let nachStatus = false; // Tabelle nach Status statt nach Namen sortieren
+  const ZIEL = () => (window.KONFIG && KONFIG.BEHERRSCHT_AB) || 75;
+  const STATUS = {
+    gefaehrdet: { text: "gefährdet", klasse: "schlecht", rang: 0, info: "letzter Test unter 50 % oder zwei Tests in Folge unter dem Ziel" },
+    unterwegs: { text: "auf dem Weg", klasse: "mittel", rang: 1, info: "noch nicht alle Abschnitte und der Abschlusstest beherrscht" },
+    offen: { text: "nicht begonnen", klasse: "", rang: 2, info: "angemeldet, aber noch kein Ergebnis" },
+    beherrscht: { text: "beherrscht", klasse: "gut", rang: 3, info: "alle Abschnitte und der Abschlusstest beherrscht" },
+  };
 
   function zeigeAnmeldung(meldung) {
     wurzel.innerHTML = `
@@ -51,17 +59,56 @@
     const personen = new Map();
     for (const e of daten) {
       const k = schluessel(e.name);
-      if (!personen.has(k)) personen.set(k, { name: e.name, geraete: new Set(), uebungen: {}, tests: { 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [] });
+      if (!personen.has(k)) personen.set(k, { name: e.name, geraete: new Set(), uebungen: {}, tests: { 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [], proAbschnitt: {} });
       const p = personen.get(k);
       p.geraete.add(e.schuelerId);
       p.eintraege.push(e);
-      (e.wiederholen || []).forEach((s) => p.wiederholen.add(s));
-      if (e.art === "test") { (p.tests[e.abschnitt] ||= []).push(prozentVon(e)); continue; }
-      const alt = p.uebungen[e.aufgabe];
-      const geloest = !lwVon(e);
-      p.uebungen[e.aufgabe] = { prozent: Math.max(prozentVon(e), alt?.prozent ?? -1), geloest: (alt?.geloest || false) || geloest, durchgaenge: (alt?.durchgaenge || 0) + 1 };
+      // Die App schickt mit jedem Ergebnis die aktuelle Liste; die neueste gilt (Training setzt Themen zurück)
+      p.wiederholen = new Set(e.wiederholen || []);
+      if (e.art === "test") {
+        (p.tests[e.abschnitt] ||= []).push(prozentVon(e));
+        if (Number(e.abschnitt) === ABSCHLUSS.id) {
+          p.proAbschnitt = {};
+          for (const t of e.teile || []) { const x = THEMEN[t.thema]?.abschnitt; if (x) p.proAbschnitt[x] = (p.proAbschnitt[x] || 0) + (t.richtig ? 1 : 0); }
+        }
+        continue;
+      }
+      // Gelöst heißt: ohne Lösungsweg mit mindestens dem Ziel; nach einem angesehenen Lösungsweg nur mit Zusatz
+      const alt = p.uebungen[e.aufgabe] || { prozent: -1, geloest: false, nachLw: false, lwGesehen: false, durchgaenge: 0 };
+      const geschafft = !lwVon(e) && prozentVon(e) >= ZIEL();
+      p.uebungen[e.aufgabe] = {
+        prozent: Math.max(prozentVon(e), alt.prozent), durchgaenge: alt.durchgaenge + 1,
+        geloest: alt.geloest || (geschafft && !alt.lwGesehen), nachLw: alt.nachLw || (geschafft && alt.lwGesehen),
+        lwGesehen: alt.lwGesehen || lwVon(e) > 0,
+      };
     }
-    return [...personen.values()].sort((a, b) => a.name.localeCompare(b.name, "de"));
+    // Angemeldete Namen ohne Ergebnis ebenfalls zeigen
+    for (const k of Object.keys(bindungen)) if (!personen.has(k))
+      personen.set(k, { name: k.replace(/(^|\s)\S/g, (z) => z.toUpperCase()), geraete: new Set(), uebungen: {}, tests: { 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [], proAbschnitt: {} });
+    const liste = [...personen.values()];
+    liste.forEach((p) => { p.status = statusVon(p); });
+    return liste.sort((a, b) => (nachStatus ? STATUS[a.status].rang - STATUS[b.status].rang : 0) || a.name.localeCompare(b.name, "de"));
+  }
+
+  const letzter = (v) => (v.length ? v[v.length - 1] : null);
+  const abschnittBeherrscht = (p, ab) => (letzter(p.tests[ab]) ?? -1) >= ZIEL();
+  const abschlussBeherrscht = (p) => (letzter(p.tests[ABSCHLUSS.id]) ?? -1) >= ZIEL() && ABSCHNITTE.every((a) => (p.proAbschnitt[a.id] ?? 0) >= ABSCHLUSS.jeAbschnitt - 1);
+  function statusVon(p) {
+    if (!p.eintraege.length) return "offen";
+    if (ABSCHNITTE.every((a) => abschnittBeherrscht(p, a.id)) && abschlussBeherrscht(p)) return "beherrscht";
+    const gefaehrdet = [...ABSCHNITTE.map((a) => a.id), ABSCHLUSS.id].some((ab) => {
+      const v = p.tests[ab];
+      if (!v.length) return false;
+      if (v[v.length - 1] < 50) return true;
+      return v.length >= 2 && v[v.length - 1] < ZIEL() && v[v.length - 2] < ZIEL() && !(ab === ABSCHLUSS.id ? abschlussBeherrscht(p) : abschnittBeherrscht(p, ab));
+    });
+    return gefaehrdet ? "gefaehrdet" : "unterwegs";
+  }
+  // Testzelle: letztes Ergebnis groß, bestes klein dahinter, falls verschieden; Farbe nach dem letzten
+  function testZelle(v, beherrscht) {
+    if (!v.length) return '<td class="zelle"></td>';
+    const l = v[v.length - 1], b = Math.max(...v);
+    return `<td class="zelle ${beherrscht ? "gut" : klasse(l)}" title="Durchgänge: ${v.join(" %, ")} %">${l}${b !== l ? ` <small>/ ${b}</small>` : ""}${v.length > 1 ? ` <small>(${v.length})</small>` : ""}${beherrscht ? " ✓" : ""}</td>`;
   }
 
   function themenStatistik(art) {
@@ -97,6 +144,8 @@
       ${plaetze && plaetze.belegt >= plaetze.max ? `<p class="hinweis-demo">Die Tabelle ist voll: ${plaetze.max} Namen sind angemeldet. Neue Namen werden abgelehnt, bis die Ergebnisse für eine neue Lerngruppe zurückgesetzt werden.</p>` : ""}
       <section class="karte kennzahlen">
         <div class="kennzahl"><b>${plaetze ? `${plaetze.belegt} / ${plaetze.max}` : personen.length}</b>${plaetze ? "Plätze belegt" : "Schülerinnen und Schüler"}</div>
+        <div class="kennzahl"><b>${personen.filter((p) => p.status === "beherrscht").length} / ${personen.length}</b>beherrschen die Einheit</div>
+        <div class="kennzahl"><b>${personen.filter((p) => p.status === "gefaehrdet").length}</b>gefährdet</div>
         <div class="kennzahl"><b>${daten.length - nTests}</b>bearbeitete Übungen</div>
         <div class="kennzahl"><b>${nTests}</b>Tests abgegeben</div>
         <div class="kennzahl"><b>${daten.reduce((n, e) => n + lwVon(e), 0)}</b>Lösungswege angesehen</div>
@@ -105,21 +154,23 @@
     if (!personen.length) html += '<section class="karte"><p>Noch keine Ergebnisse eingegangen.</p></section>';
     else {
       html += `<section class="karte"><h2>Übersicht je Abschnitt</h2>
-        <p class="klein"><b>Ü</b> = Übungen gelöst ohne Lösungsweg (von 5), <b>Test</b> = bestes Testergebnis in % (Anzahl der Durchgänge), <b>Abschlusstest</b> = 12 Fragen aus allen Abschnitten. Klick auf einen Namen zeigt alle Einzelheiten. 🔒 = Name an ein Gerät gebunden, ⚠ = Ergebnisse von mehreren Geräten.</p>
-        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">Wiederholen</th></tr>
+        <p class="klein"><b>Ziel:</b> Ein Abschnitt ist beherrscht, wenn der letzte Test mindestens ${ZIEL()} % hat (✓). Die Einheit ist beherrscht, wenn zusätzlich der letzte Abschlusstest mindestens ${ZIEL()} % hat, mit höchstens einem Fehler je Abschnitt.<br>
+        <b>Ü</b> = Übungen mit mindestens ${ZIEL()} % ohne Lösungsweg (von 5; „+n LW“ = erst nach angesehenem Lösungsweg). <b>Test</b> = letztes Ergebnis in %, dahinter / bestes und (Anzahl der Durchgänge). <b>Status:</b> ${Object.values(STATUS).map((x) => `${x.text} = ${x.info}`).join("; ")}. Klick auf einen Namen zeigt alle Einzelheiten. 🔒 = an ein Gerät gebunden, ⚠ = mehrere Geräte.</p>
+        <div class="knopfreihe"><button class="knopf leise" id="sortieren">${nachStatus ? "Nach Namen sortieren" : "Nach Status sortieren (gefährdet zuerst)"}</button></div>
+        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th><th rowspan="2">Status</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">Wiederholen</th></tr>
         <tr>${ABSCHNITTE.map(() => "<th>Ü</th><th>Test</th>").join("")}</tr></thead><tbody>`;
       personen.forEach((p, i) => {
-        html += `<tr class="klickbar" data-person="${i}"><td>${esc(p.name)} ${bindungen[schluessel(p.name)] ? '<span title="an ein Gerät gebunden">🔒</span>' : ""} ${p.geraete.size > 1 ? `<span title="${p.geraete.size} Geräte">⚠</span>` : ""}</td>`;
+        html += `<tr class="klickbar" data-person="${i}"><td>${esc(p.name)} ${bindungen[schluessel(p.name)] ? '<span title="an ein Gerät gebunden">🔒</span>' : ""} ${p.geraete.size > 1 ? `<span title="${p.geraete.size} Geräte">⚠</span>` : ""}</td>
+          <td class="zelle ${STATUS[p.status].klasse}" title="${STATUS[p.status].info}">${STATUS[p.status].text}</td>`;
         for (const a of ABSCHNITTE) {
           const liste = uebungenVon(a.id);
           const bearbeitet = liste.filter((u) => p.uebungen[u.id]).length;
           const geloest = liste.filter((u) => p.uebungen[u.id]?.geloest).length;
-          html += bearbeitet ? `<td class="zelle ${klasse((100 * geloest) / liste.length)}" title="${bearbeitet} bearbeitet">${geloest}/${liste.length}</td>` : '<td class="zelle"></td>';
-          const t = p.tests[a.id];
-          html += t.length ? `<td class="zelle ${klasse(Math.max(...t))}" title="Durchgänge: ${t.join(" %, ")} %">${Math.max(...t)}${t.length > 1 ? ` <small>(${t.length})</small>` : ""}</td>` : '<td class="zelle"></td>';
+          const nachLw = liste.filter((u) => !p.uebungen[u.id]?.geloest && p.uebungen[u.id]?.nachLw).length;
+          html += bearbeitet ? `<td class="zelle ${klasse((100 * geloest) / liste.length)}" title="${bearbeitet} bearbeitet">${geloest}/${liste.length}${nachLw ? ` <small>+${nachLw} LW</small>` : ""}</td>` : '<td class="zelle"></td>';
+          html += testZelle(p.tests[a.id], abschnittBeherrscht(p, a.id));
         }
-        const tA = p.tests[ABSCHLUSS.id];
-        html += tA.length ? `<td class="zelle ${klasse(Math.max(...tA))}" title="Durchgänge: ${tA.join(" %, ")} %">${Math.max(...tA)}${tA.length > 1 ? ` <small>(${tA.length})</small>` : ""}</td>` : '<td class="zelle"></td>';
+        html += testZelle(p.tests[ABSCHLUSS.id], abschlussBeherrscht(p));
         html += `<td>${[...p.wiederholen].map((s) => esc(THEMEN[s]?.name || s)).join(", ")}</td></tr>`;
       });
       html += `</tbody></table></div></section>
@@ -137,6 +188,7 @@
 
     wurzel.innerHTML = html;
     wurzel.querySelectorAll("[data-person]").forEach((tr) => tr.addEventListener("click", () => zeigePerson(personen[+tr.dataset.person])));
+    document.getElementById("sortieren")?.addEventListener("click", () => { nachStatus = !nachStatus; zeigeUebersicht(); });
     document.getElementById("neu").addEventListener("click", laden);
     document.getElementById("csv").addEventListener("click", csvExport);
     document.getElementById("abmelden").addEventListener("click", () => { passwort = ""; daten = []; zeigeAnmeldung(); });
@@ -157,7 +209,8 @@
     const k = schluessel(p.name);
     let html = `<header class="leiste"><button class="knopf leise" id="zurueck">← Übersicht</button></header>
       <section class="karte"><h2>${esc(p.name)}</h2>
-      <p>${Object.keys(p.uebungen).length} von ${UEBUNGEN.length} Übungen bearbeitet, ${Object.values(p.uebungen).filter((x) => x.geloest).length} ohne Lösungsweg gelöst · ${Object.values(p.tests).flat().length} Testdurchgänge · ${p.geraete.size} Gerät(e)</p>
+      <p><b>Status: ${STATUS[p.status].text}</b> (${STATUS[p.status].info}). Beherrscht: ${ABSCHNITTE.filter((a) => abschnittBeherrscht(p, a.id)).map((a) => "Abschnitt " + a.nr).join(", ") || "noch kein Abschnitt"}${abschlussBeherrscht(p) ? ", Abschlusstest" : ""}.</p>
+      <p>${Object.keys(p.uebungen).length} von ${UEBUNGEN.length} Übungen bearbeitet, ${Object.values(p.uebungen).filter((x) => x.geloest).length} mit mindestens ${ZIEL()} % ohne Lösungsweg gelöst · ${Object.values(p.tests).flat().length} Testdurchgänge · ${p.geraete.size} Gerät(e)</p>
       ${bindungen[k]
         ? `<p>🔒 An ein Gerät gebunden seit ${new Date(bindungen[k]).toLocaleString("de-DE")}.</p>
            <p class="klein">Muss die Person das Gerät wechseln (neues Gerät, gelöschte Browserdaten, privates Fenster), hier die Bindung lösen. Die nächste Anmeldung verbindet den Namen mit dem neuen Gerät; alle Ergebnisse bleiben erhalten.</p>
