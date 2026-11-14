@@ -184,4 +184,13 @@ button.balken-zeile:hover { background: var(--grau); }
   .eingabe-zeile.wiss input.vorfaktor { width: 6rem; }
   .balken-zeile { grid-template-columns: 1fr; gap: 2px; }
 }
-@media print { .knopf, .fuss, .leiste { display: none; } }
+@media print {
+  .knopf, .fuss, .leiste, .hinweis-demo, .toast { display: none !important; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .karte { border: 0; padding: 0; }
+  .kompetenzpass h3 { break-after: avoid; }
+  .kompetenzpass table { break-inside: avoid; }
+}
+.eingang { border-left: 4px solid var(--navy); }
+.kompetenzpass table { table-layout: fixed; }
+.kompetenzpass td:first-child { width: 62%; }

@@ -21,17 +21,18 @@
   const W = (n, x) => `<span class="wurzel">${n === 2 ? "" : `<sup class="index">${n}</sup>`}√<span class="radikand">${x}</span></span>`;
   // Zahl auf Deutsch: Komma, schmales Leerzeichen bei Tausendern, echtes Minus
   function zf(x, stellen = 6) {
-    const s = Number(x).toLocaleString("de-DE", { maximumFractionDigits: stellen, useGrouping: true });
-    return s.replace(/\./g, " ").replace("-", "−");
+    const s = Number(x).toLocaleString("de-DE", { maximumFractionDigits: stellen, useGrouping: true }).replace(/\./g, " ").replace("-", "−");
+    const [ganz, komma] = s.split(",");
+    return komma === undefined ? ganz : `${ganz},${komma.replace(/(\d{3})(?=\d)/g, "$1 ")}`;
   }
   const WS = (a, n) => `${zf(a)} · 10<sup>${mz(n)}</sup>`;
 
   // ───────────── Abschnitte ─────────────
   const ABSCHNITTE = [
     {
-      id: 1, nr: "1", titel: "Potenzen mit ganzzahligen Exponenten", seiten: "S. 43–48",
+      id: 1, nr: "1", titel: "Potenzen mit ganzzahligen Exponenten", seiten: "S. 44–48 (Einstieg S. 43)",
       merke: `<p>Für eine Zahl a und eine natürliche Zahl n ≥ 2 ist ${P("a", "n")} = a · a · … · a (n Faktoren). Dazu gilt ${P("a", 1)} = a und für a ≠ 0 auch ${P("a", 0)} = 1.</p>
-        <p>Für a ≠ 0 gilt ${P("a", "−n")} = ${B(1, P("a", "n"))}. Ein negativer Exponent bedeutet also „Kehrwert“, nicht „negative Zahl“: ${P(2, -3)} = ${B(1, 8)}.</p>
+        <p>Für a ≠ 0 gilt ${P("a", "−n")} = ${B(1, P("a", "n"))}. Ein negativer Exponent bedeutet also: Kehrwert der Potenz mit positivem Exponenten, nicht „negative Zahl“: ${P(2, -3)} = ${B(1, 8)}.</p>
         <p>Achte auf Klammern: ${P("(−3)", 2)} = 9, aber −${P(3, 2)} = −9.</p>`,
       buch: "Information S. 44–45, Übungen S. 46 Nr. 2, 3, 6, 8, 9; S. 47 Nr. 13, 16; S. 48 Nr. 23"
     },
@@ -46,7 +47,7 @@
     {
       id: 3, nr: "3", titel: "Potenzen mit rationalen Exponenten", seiten: "S. 52–59",
       merke: `<p>Für a ≥ 0 ist ${W("n", "a")} die nichtnegative Zahl, deren n-te Potenz a ergibt: ${W(3, 64)} = 4, denn ${P(4, 3)} = 64.</p>
-        <p>Für a ≥ 0 gilt ${P("a", "1/n")} = ${W("n", "a")}, und für a > 0 gilt ${P("a", "m/n")} = ${W("n", P("a", "m"))} = ${P(`(${W("n", "a")})`, "m")}.</p>
+        <p>Für a ≥ 0 gilt ${P("a", "1/n")} = ${W("n", "a")}, und für a > 0, m ∈ ℤ und n ∈ ℕ mit n ≥ 2 gilt ${P("a", "m/n")} = ${W("n", P("a", "m"))} = ${P(`(${W("n", "a")})`, "m")}.</p>
         <p>Rechentipp: zuerst die Wurzel ziehen, dann potenzieren: ${P(8, "2/3")} = ${P("(∛8)", 2)} = ${P(2, 2)} = 4.</p>`,
       buch: "Information S. 53–54 und 57, Übungen S. 55 Nr. 4, 5, 9; S. 58 Nr. 4–7; S. 59 Nr. 8, 11, 14"
     },
@@ -64,7 +65,7 @@
   // ───────────── Themen für Rückmeldung und Wiederholung ─────────────
   const THEMEN = {
     nat: { abschnitt: 1, name: "Potenzen mit natürlichen Exponenten", merke: `${P("a", "n")} ist ein Produkt aus n gleichen Faktoren a. Bei negativer Basis entscheidet der Exponent über das Vorzeichen: gerade → positiv, ungerade → negativ.`, tipps: [`Klammer beachten: ${P("(−2)", 4)} = 16, aber −${P(2, 4)} = −16.`, "Brüche: Zähler und Nenner einzeln potenzieren."], buch: "S. 44 (1) und S. 46 Nr. 2, 8" },
-    neg: { abschnitt: 1, name: "Negative Exponenten", merke: `${P("a", "−n")} = ${B(1, P("a", "n"))} für a ≠ 0. Bei Brüchen: ${P(`(${B("a", "b")})`, "−n")} = ${P(`(${B("b", "a")})`, "n")}.`, tipps: [`${P(3, -2)} ist positiv: ${B(1, 9)}, nicht −9.`, `${P(0, -1)} ist nicht definiert.`], buch: "S. 45 (2) und S. 46 Nr. 6, 9; S. 47 Nr. 13" },
+    neg: { abschnitt: 1, name: "Negative Exponenten", merke: `${P("a", "−n")} = ${B(1, P("a", "n"))} für a ≠ 0. Bei Brüchen (a, b ≠ 0): ${P(`(${B("a", "b")})`, "−n")} = ${P(`(${B("b", "a")})`, "n")}.`, tipps: [`${P(3, -2)} ist positiv: ${B(1, 9)}, nicht −9.`, `${P(0, -1)} ist nicht definiert.`], buch: "S. 45 (2) und S. 46 Nr. 6, 9; S. 47 Nr. 13" },
     null: { abschnitt: 1, name: "Exponent null", merke: `${P("a", 0)} = 1 für jede Zahl a ≠ 0.`, tipps: [`${P(7, 0)} = 1, nicht 0 und nicht 7.`], buch: "S. 44 Definition und S. 46 Nr. 6" },
     zehn: { abschnitt: 1, name: "Zehnerpotenzen und Vorsilben", merke: `${P(10, "n")} ist eine 1 mit n Nullen, ${P(10, "−n")} hat die 1 an der n-ten Stelle nach dem Komma.`, tipps: ["Mikro (µ) = 10⁻⁶, Nano = 10⁻⁹, Giga = 10⁹, Tera = 10¹²."], buch: "S. 45 (3), (4) und S. 46 Nr. 2" },
     gross: { abschnitt: 2, name: "Große Zahlen mit Zehnerpotenz", merke: `Vorfaktor a mit 1 ≤ a < 10, Exponent = Anzahl der Stellen, um die das Komma nach rechts wandert: 38 000 = ${WS(3.8, 4)}.`, tipps: [`${WS(38, 3)} hat den richtigen Wert, aber der Vorfaktor 38 ist nicht kleiner als 10.`], buch: "S. 49 Beispiel und Nr. 1, 3" },
@@ -79,10 +80,13 @@
     p2: { abschnitt: 4, name: "Potenzgesetz P2 (gleicher Exponent)", merke: `${P("a", "n")} · ${P("b", "n")} = ${P("(ab)", "n")}`, tipps: ["Passende Partner suchen, deren Produkt eine glatte Zahl ist (2 · 5, 4 · 25)."], buch: "S. 66 und S. 68 Nr. 13" },
     p3: { abschnitt: 4, name: "Potenzgesetz P3 (Potenz einer Potenz)", merke: `${P(`(${P("a", "m")})`, "n")} = ${P("a", "m · n")}`, tipps: [`${P(`(${P(2, 3)})`, 2)} = ${P(2, 6)}, nicht ${P(2, 5)}.`], buch: "S. 66 und S. 69 Nr. 19, 20; S. 70 Nr. 26" },
     summe: { abschnitt: 4, name: "Summen von Potenzen", merke: `Nur gleichartige Glieder zusammenfassen: ${P(2, 5)} + ${P(2, 5)} = 2 · ${P(2, 5)} = ${P(2, 6)}.`, tipps: [`${P(2, 3)} + ${P(4, 3)} ≠ ${P(6, 3)}: Für Summen gibt es kein Potenzgesetz.`, `${P("(2 + 3)", 2)} = 25, nicht ${P(2, 2)} + ${P(3, 2)} = 13.`], buch: "S. 67 (Addieren und Subtrahieren) und S. 68 Nr. 14" },
+    vw_pot: { abschnitt: 0, name: "Vorwissen: Potenzen", merke: `${P("a", "n")} = a · a · … · a (n Faktoren). Klammern beachten: ${P("(−3)", 2)} = 9, aber −${P(3, 2)} = −9.`, tipps: [`${P(2, 5)} ist nicht 2 · 5.`], buch: "Wiederholung aus Klasse 9" },
+    vw_wurzel: { abschnitt: 0, name: "Vorwissen: Quadratwurzeln", merke: `${W(2, "a")} (a ≥ 0) ist die nichtnegative Zahl, deren Quadrat a ist: ${W(2, 49)} = 7. Bei Brüchen: Wurzel aus Zähler und Nenner.`, tipps: ["Quadratzahlen bis 20 · 20 = 400 helfen.", `${W(2, 49)} ist nicht 49 : 2.`], buch: "Wiederholung aus Klasse 9" },
+    vw_bruch: { abschnitt: 0, name: "Vorwissen: Bruchrechnung", merke: `Brüche multiplizieren: Zähler mal Zähler, Nenner mal Nenner. Potenzieren: Zähler und Nenner einzeln potenzieren.`, tipps: ["Vor dem Multiplizieren kürzen spart Arbeit.", `${P(`(${B(2, 3)})`, 2)} = ${B(4, 9)}, nicht ${B(4, 3)}.`], buch: "Wiederholung aus Klasse 9" },
     terme: { abschnitt: 4, name: "Terme mit Variablen", merke: "Gesetze nacheinander anwenden: erst Klammern (P2, P3), dann gleiche Basen zusammenfassen (P1).", tipps: ["Bei Wurzeln und Brüchen im Exponenten gilt die Bedingung x > 0."], buch: "S. 68 Nr. 9, 10; S. 71 Nr. 39, 41" }
   };
 
-  const NIVEAUS = { 1: "Basis", 2: "Standard", 3: "Expert" };
+  const NIVEAUS = { 1: "Basis", 2: "Standard", 3: "Vertiefung" };
 
   // ───────────── Übungen ─────────────
   // Je Abschnitt fünf Übungen; id "Abschnitt-Nummer".
@@ -323,10 +327,10 @@
           hilfen: ["3 g sollen ein Millionstel der Gesamtmasse sein. Wie groß ist dann die Gesamtmasse?", `Gesamtmasse = 3 g : ${P(10, -6)} = 3 · ${P(10, 6)} g. Rechne in Kilogramm um.`],
           fehler: [{ wert: 3e6, text: "Das ist die Masse in Gramm. Rechne in Kilogramm um." }, { wert: 0.003, text: "Du hast mit 10⁻⁶ multipliziert. Die Gesamtmasse ist viel größer als 3 g." }],
           weg: `3 g : ${P(10, -6)} = 3 · ${P(10, 6)} g = 3 · ${P(10, 3)} kg = 3000 kg, also etwa 3 Tonnen Wasser.` },
-        { id: "d", thema: "sach", text: "Luft enthält etwa 18 ppm Neon (Volumenanteil). Berechne, wie viel Milliliter Neon in 1 Liter Luft enthalten sind.", einheit: "mL", wert: 0.018, pruef: "18*I(10)**-6*1000",
-          hilfen: ["Welcher Bruchteil von 1 Liter ist Neon?", `18 ppm von 1 L sind 18 · ${P(10, -6)} L. Rechne mit 1 L = ${P(10, 3)} mL in Milliliter um.`],
-          fehler: [{ wert: 0.000018, text: "Das ist das Volumen in Litern. Rechne in Milliliter um." }, { wert: 18, text: "18 ppm bedeutet 18 Millionstel, nicht 18 mL." }],
-          weg: `18 · ${P(10, -6)} L = 18 · ${P(10, -6)} · ${P(10, 3)} mL = 18 · ${P(10, -3)} mL = 0,018 mL` }
+        { id: "d", thema: "sach", text: "Luft enthält etwa 18 ppm Neon (Volumenanteil). Berechne, wie viel Milliliter Neon in 1 Liter Luft enthalten sind.", einheit: "ml", wert: 0.018, pruef: "18*I(10)**-6*1000",
+          hilfen: ["Welcher Bruchteil von 1 Liter ist Neon?", `18 ppm von 1 L sind 18 · ${P(10, -6)} L. Rechne mit 1 L = ${P(10, 3)} ml in Milliliter um.`],
+          fehler: [{ wert: 0.000018, text: "Das ist das Volumen in Litern. Rechne in Milliliter um." }, { wert: 18, text: "18 ppm bedeutet 18 Millionstel, nicht 18 ml." }],
+          weg: `18 · ${P(10, -6)} L = 18 · ${P(10, -6)} · ${P(10, 3)} ml = 18 · ${P(10, -3)} ml = 0,018 ml` }
       ]
     },
     // ── Abschnitt 3 ──
@@ -448,7 +452,7 @@
         { id: "a", thema: "stamm", text: "Berechne, wie groß die Kultur nach einer halben Stunde ist. Runde auf zwei Nachkommastellen.", einheit: "cm³", stellen: 2, wert: Math.SQRT2, loesung: "√2 ≈ 1,41", pruef: "sqrt(2)",
           hilfen: ["Welchen Wert hat t bei einer halben Stunde?", `${P(2, "1/2")} = ${W(2, 2)}; runde auf zwei Nachkommastellen.`],
           fehler: [{ wert: 1, text: `${P(2, "1/2")} ist nicht 2 · ${B(1, 2)}. Der Exponent 1/2 bedeutet Quadratwurzel.` }, { wert: 1.5, text: "In einer halben Stunde wächst die Kultur nicht um die Hälfte, sondern um den Faktor √2." }],
-          weg: `V(½) = ${P(2, "1/2")} = ${W(2, 2)} ≈ 1,41 (cm³). Zweimal eine halbe Stunde ergibt den Faktor ${W(2, 2)} · ${W(2, 2)} = 2.` },
+          weg: `V(½) = ${P(2, "1/2")} = ${W(2, 2)} ≈ 1,41 (cm³). Zweimal eine halbe Stunde ergibt den Faktor ${W(2, 2)} · ${W(2, 2)} = ${P(2, "1/2 + 1/2")} = 2 (Potenzgesetz P1).` },
         { id: "b", thema: "rational", text: "Berechne, wie groß sie nach 1 Stunde 30 Minuten ist. Runde auf zwei Nachkommastellen.", einheit: "cm³", stellen: 2, wert: 2 ** 1.5, loesung: "2^(3/2) ≈ 2,83", pruef: "I(2)**R(3,2)",
           hilfen: ["Schreibe 1 h 30 min als Bruch von Stunden.", `${P(2, "3/2")} = ${W(2, P(2, 3))} = ${W(2, 8)}`],
           fehler: [{ wert: 3, text: "1,5 Stunden bedeuten den Faktor 2^(3/2), nicht 2 · 1,5." }],
@@ -640,22 +644,38 @@
   function kuerze(z, n) { const g = ggT(z, n); return n / g < 0 ? [-z / g, -n / g] : [z / g, n / g]; }
 
   const TESTS = {
+    // Eingangstest: sechs Fragen zum Vorwissen aus Klasse 9 (Gutachten M-C3)
+    0: function (r) {
+      const w = (l) => l[Math.floor(r() * l.length)];
+      const f = [];
+      { const [b, n] = w([[2, 5], [2, 6], [3, 3], [3, 4], [4, 3], [5, 3], [10, 4], [2, 7]]); f.push({ thema: "vw_pot", text: P(b, n), wert: b ** n, pruef: `I(${b})**${n}` }); }
+      { const b = w([2, 3, 4, 5]), n = w([2, 3]), mitKlammer = r() < 0.5;
+        f.push({ thema: "vw_pot", text: mitKlammer ? P(`(−${b})`, n) : `−${P(b, n)}`, wert: mitKlammer ? (-b) ** n : -(b ** n), pruef: mitKlammer ? `I(-${b})**${n}` : `-I(${b})**${n}` }); }
+      { const k = w([7, 8, 9, 11, 12, 13, 14, 15, 16]); f.push({ thema: "vw_wurzel", text: W(2, k * k), wert: k, pruef: `sqrt(${k * k})` }); }
+      { const [p, q] = w([[3, 4], [2, 5], [5, 6], [4, 7], [3, 8], [7, 9], [1, 6], [9, 10]]);
+        f.push({ thema: "vw_wurzel", text: W(2, B(p * p, q * q)) + ` <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: p / q, loesung: bruchText(p, q), pruef: `sqrt(R(${p * p},${q * q}))` }); }
+      { const [a, b, c, d] = w([[2, 3, 9, 4], [3, 5, 10, 9], [4, 7, 21, 8], [5, 6, 3, 10], [2, 9, 3, 4], [6, 7, 14, 9], [3, 8, 4, 9], [5, 12, 4, 15]]); const [z, n] = kuerze(a * c, b * d);
+        f.push({ thema: "vw_bruch", text: `${B(a, b)} · ${B(c, d)} <span class="klein">Gib das Ergebnis als gekürzten Bruch an.</span>`, exakt: true, wert: (a * c) / (b * d), loesung: bruchText(z, n), pruef: `R(${a},${b})*R(${c},${d})` }); }
+      { const [p, q] = w([[2, 3], [3, 4], [2, 5], [3, 5], [4, 5], [1, 3], [5, 6], [3, 7]]), n = w([2, 3]);
+        f.push({ thema: "vw_bruch", text: `${P(`(${B(p, q)})`, n)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: p ** n / q ** n, loesung: bruchText(p ** n, q ** n), pruef: `R(${p},${q})**${n}` }); }
+      return f;
+    },
     1: function (r) {
       const w = (l) => l[Math.floor(r() * l.length)];
       const f = [];
-      { const b = w([2, 3]), n = w([3, 4, 5]); f.push({ thema: "nat", text: `${P(`(−${b})`, n)}`, wert: (-b) ** n, pruef: `I(-${b})**${n}` }); }
-      { const b = w([2, 3, 4]), n = w([2, 4]); f.push({ thema: "nat", text: `−${P(b, n)}`, wert: -(b ** n), pruef: `-I(${b})**${n}` }); }
-      { const b = w([2, 3, 5]), n = w([2, 3]); f.push({ thema: "neg", text: `${P(b, -n)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: 1 / b ** n, loesung: `1/${b ** n}`, pruef: `I(${b})**-${n}` }); }
+      { const b = w([2, 3, 4]), n = w([3, 4, 5]); f.push({ thema: "nat", text: `${P(`(−${b})`, n)}`, wert: (-b) ** n, pruef: `I(-${b})**${n}` }); }
+      { const b = w([2, 3, 4, 5]), n = w([2, 4]); f.push({ thema: "nat", text: `−${P(b, n)}`, wert: -(b ** n), pruef: `-I(${b})**${n}` }); }
+      { const b = w([2, 3, 4, 5, 6]), n = w([2, 3]); f.push({ thema: "neg", text: `${P(b, -n)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: 1 / b ** n, loesung: `1/${b ** n}`, pruef: `I(${b})**-${n}` }); }
       { const [p, q] = w([[2, 3], [3, 4], [2, 5], [3, 5]]), n = w([2, 3]); const [z, m] = [q ** n, p ** n];
         f.push({ thema: "neg", text: `${P(`(${B(p, q)})`, -n)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: z / m, loesung: `${bruchText(z, m)}`, pruef: `R(${p},${q})**-${n}` }); }
-      { const b = w([3, 4, 5, 8]); const [z, n] = kuerze(b + 1, b);
+      { const b = w([2, 3, 4, 5, 6, 7, 8, 9]); const [z, n] = kuerze(b + 1, b);
         f.push({ thema: "null", text: `${P(b, 0)} + ${P(b, -1)} <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: (b + 1) / b, loesung: bruchText(z, n), pruef: `I(${b})**0 + I(${b})**-1` }); }
-      { const k = w([3, 4, 5, 6]); f.push({ thema: "neg", text: `Schreibe ${B(1, 2 ** k)} als Potenz mit der Basis 2.`, vor: "2 hoch", wert: -k, pruef: `log(R(1,${2 ** k}),2)` }); }
-      { const [name, e] = w([["Mikrogramm (µg)", -6], ["Nanometer (nm)", -9], ["Milligramm (mg)", -3], ["Gigabyte (GB)", 9], ["Megahertz (MHz)", 6]]);
-        const einheit = name.match(/\((.+)\)/)[1].replace(/^(µ|n|m|G|M)/, "");
+      { const k = w([2, 3, 4, 5, 6, 7, 8, 9]); f.push({ thema: "neg", text: `Gib ${B(1, 2 ** k)} als Potenz mit der Basis 2 an.`, vor: "2 hoch", wert: -k, pruef: `log(R(1,${2 ** k}),2)` }); }
+      { const [name, e] = w([["Mikrogramm (µg)", -6], ["Nanometer (nm)", -9], ["Milligramm (mg)", -3], ["Gigabyte (GB)", 9], ["Megahertz (MHz)", 6], ["Kilometer (km)", 3], ["Mikrosekunde (µs)", -6], ["Terabyte (TB)", 12], ["Millisekunde (ms)", -3]]);
+        const einheit = name.match(/\((.+)\)/)[1].replace(/^(µ|n|m|G|M|k|T)/, "");
         f.push({ thema: "zehn", text: `1 ${name} = 10<sup>?</sup> ${einheit}`, vor: "10 hoch", wert: e, pruef: `${e}` }); }
       { const b = w([2, 4, 5]), n = w([2, 3]);
-        f.push(mische(r, { thema: "neg", typ: "auswahl", text: `Welche Aussage über ${P(b, -n)} ist richtig?`,
+        f.push(mische(r, { thema: "neg", typ: "auswahl", text: `Entscheide, welche Aussage über ${P(b, -n)} richtig ist.`,
           optionen: [`${P(b, -n)} = ${B(1, b ** n)}`, `${P(b, -n)} = −${b ** n}`, `${P(b, -n)} = −${B(1, b ** n)}`, `${P(b, -n)} = ${B(1, `${b} · ${n}`)}`] })); }
       return f;
     },
@@ -670,37 +690,37 @@
       { const a = vorfaktor(), n = ganz(3, 6); const z = Math.round(a * 10); const x = z / 10 ** (n + 1);
         f.push({ thema: "klein", typ: "wiss", text: zf(x, 12), wert: x, pruef: `R(${z},10**${n + 1})` }); }
       { const a = vorfaktor(), n = ganz(4, 6); const z = Math.round(a * 10); const x = z * 10 ** (n - 1);
-        f.push({ thema: "gross", text: `Schreibe ${WS(a, n)} ohne Zehnerpotenz.`, wert: x, loesung: zf(x), pruef: `R(${z},10)*10**${n}` }); }
+        f.push({ thema: "gross", text: `Gib ${WS(a, n)} ohne Zehnerpotenz an.`, wert: x, loesung: zf(x), pruef: `R(${z},10)*10**${n}` }); }
       { const a = vorfaktor(), n = ganz(2, 4); const z = Math.round(a * 10); const x = z / 10 ** (n + 1);
-        f.push({ thema: "klein", text: `Schreibe ${WS(a, -n)} als Dezimalzahl.`, wert: x, loesung: zf(x, 12), pruef: `R(${z},10)*I(10)**-${n}` }); }
+        f.push({ thema: "klein", text: `Gib ${WS(a, -n)} als Dezimalzahl an.`, wert: x, loesung: zf(x, 12), pruef: `R(${z},10)*I(10)**-${n}` }); }
       { const [vs, e] = w([["µm", -6], ["nm", -9], ["mm", -3]]); const z = ganz(2, 9) * 10 + ganz(1, 9); const x = z * 10 ** e;
         f.push({ thema: "einheit", typ: "wiss", text: `Gib ${z} ${vs} in Metern an.`, einheit: "m", wert: x, pruef: `${z}*I(10)**(${e})` }); }
       { const a = ganz(2, 4), b = ganz(2, 4), m = ganz(3, 8), n = ganz(2, 6);
         f.push({ thema: "sach", typ: "wiss", text: `(${a} · ${P(10, m)}) · (${b} · ${P(10, n)})`, wert: a * b * 10 ** (m + n), pruef: `${a}*10**${m}*${b}*10**${n}` }); }
       { const k = ganz(1, 3), m = ganz(7, 9); const s = 3 * k;
-        f.push({ thema: "sach", typ: "wiss", text: `Eine Raumsonde ist ${s} · ${P(10, m)} km von der Erde entfernt. Wie viele Sekunden braucht ein Funksignal (Lichtgeschwindigkeit 3 · ${P(10, 5)} km/s) bis zur Erde?`, einheit: "s", wert: k * 10 ** (m - 5), pruef: `${s}*10**${m}/(3*10**5)` }); }
+        f.push({ thema: "sach", typ: "wiss", text: `Eine Raumsonde ist ${s} · ${P(10, m)} km von der Erde entfernt. Berechne, wie viele Sekunden ein Funksignal (Lichtgeschwindigkeit 3 · ${P(10, 5)} km/s) bis zur Erde braucht.`, einheit: "s", wert: k * 10 ** (m - 5), pruef: `${s}*10**${m}/(3*10**5)` }); }
       { const [anteil, e] = w([["ppm", -6], ["ppb", -9]]); const z = ganz(2, 9);
-        f.push({ thema: "einheit", text: `Ein Anteil von ${z} ${anteil} entspricht ${z} · ${P(10, "?")}.`, vor: "10 hoch", wert: e, pruef: `${e}` }); }
+        f.push({ thema: "einheit", text: `Ein Anteil von ${z} ${anteil} entspricht ${z} · ${P(10, "?")}. Gib den Exponenten an.`, vor: "10 hoch", wert: e, pruef: `${e}` }); }
       return f;
     },
     3: function (r) {
       const w = (l) => l[Math.floor(r() * l.length)];
       const f = [];
-      { const [n, b] = w([[3, 3], [3, 4], [3, 5], [4, 2], [4, 3], [5, 2]]); f.push({ thema: "wurzel", text: W(n, b ** n), wert: b, pruef: `root(${b ** n},${n})` }); }
-      { const [a, n] = w([[49, 2], [64, 3], [81, 4], [32, 5], [1000, 3]]); f.push({ thema: "stamm", text: P(zf(a), `1/${n}`), wert: Math.round(a ** (1 / n)), pruef: `I(${a})**R(1,${n})` }); }
-      { const [a, m, n] = w([[8, 2, 3], [16, 3, 4], [27, 2, 3], [4, 5, 2], [25, 3, 2], [32, 2, 5]]); const x = Math.round(a ** (m / n));
+      { const [n, b] = w([[3, 3], [3, 4], [3, 5], [3, 6], [4, 2], [4, 3], [4, 4], [5, 2], [5, 3]]); f.push({ thema: "wurzel", text: W(n, b ** n), wert: b, pruef: `root(${b ** n},${n})` }); }
+      { const [a, n] = w([[49, 2], [64, 3], [81, 4], [32, 5], [1000, 3], [8, 3], [243, 5], [16, 4], [343, 3]]); f.push({ thema: "stamm", text: P(zf(a), `1/${n}`), wert: Math.round(a ** (1 / n)), pruef: `I(${a})**R(1,${n})` }); }
+      { const [a, m, n] = w([[8, 2, 3], [16, 3, 4], [27, 2, 3], [4, 5, 2], [25, 3, 2], [32, 2, 5], [9, 3, 2], [64, 2, 3], [125, 2, 3]]); const x = Math.round(a ** (m / n));
         f.push({ thema: "rational", text: P(a, `${m}/${n}`), wert: x, pruef: `I(${a})**R(${m},${n})` }); }
-      { const [a, m, n] = w([[16, 1, 2], [8, 2, 3], [27, 1, 3], [9, 3, 2], [16, 3, 4]]); const x = Math.round(a ** (m / n));
+      { const [a, m, n] = w([[16, 1, 2], [8, 2, 3], [27, 1, 3], [9, 3, 2], [16, 3, 4], [25, 1, 2], [64, 2, 3], [125, 1, 3], [4, 3, 2]]); const x = Math.round(a ** (m / n));
         f.push({ thema: "rational", text: P(a, `−${m}/${n}`) + ` <span class="klein">Gib das Ergebnis als Bruch an.</span>`, exakt: true, wert: 1 / x, loesung: `1/${x}`, pruef: `I(${a})**R(-${m},${n})` }); }
-      { const [m, n] = w([[2, 3], [3, 4], [2, 5], [3, 2], [5, 3]]); const [z, nn] = kuerze(m, n);
-        f.push({ thema: "umform", text: `Schreibe ${W(n, P("x", m))} als Potenz von x (x > 0).`, vor: "x hoch", wert: m / n, loesung: bruchText(z, nn), pruef: `ex(root(x**${m},${n}))` }); }
-      { const [m, n] = w([[3, 4], [2, 3], [3, 5], [4, 3]]);
-        f.push(mische(r, { thema: "umform", typ: "auswahl", text: `Welche Wurzelschreibweise gehört zu ${P("x", `${m}/${n}`)} (x > 0)?`,
+      { const [m, n] = w([[2, 3], [3, 4], [2, 5], [3, 2], [5, 3], [4, 5], [5, 2], [7, 3], [5, 4]]); const [z, nn] = kuerze(m, n);
+        f.push({ thema: "umform", text: `Gib ${W(n, P("x", m))} als Potenz von x an (x > 0).`, vor: "x hoch", wert: m / n, loesung: bruchText(z, nn), pruef: `ex(root(x**${m},${n}))` }); }
+      { const [m, n] = w([[3, 4], [2, 3], [3, 5], [4, 3], [2, 5], [5, 2], [5, 3], [3, 2], [4, 5]]);
+        f.push(mische(r, { thema: "umform", typ: "auswahl", text: `Entscheide, welche Wurzelschreibweise zu ${P("x", `${m}/${n}`)} gehört (x > 0).`,
           optionen: [W(n, P("x", m)), W(m, P("x", n)), B(P("x", m), n), W(m * n, "x")] })); }
-      { const [b, m, n] = w([[8, 2, 3], [27, 2, 3], [4, 3, 2], [9, 3, 2], [16, 3, 4]]); const y = Math.round(b ** (m / n));
-        f.push({ thema: "rational", text: `Für welche Basis b gilt ${P("b", `${m}/${n}`)} = ${y}?`, vor: "b =", wert: b, pruef: `I(${y})**R(${n},${m})` }); }
-      { const [n, a] = w([[3, 50], [3, 100], [4, 50], [4, 300], [5, 100], [3, 200]]);
-        f.push({ thema: "wurzel", text: `Zwischen welchen aufeinanderfolgenden natürlichen Zahlen liegt ${W(n, a)}? Gib die kleinere an.`, wert: Math.floor(a ** (1 / n) + 1e-12), pruef: `floor(root(${a},${n}))` }); }
+      { const [b, m, n] = w([[8, 2, 3], [27, 2, 3], [4, 3, 2], [9, 3, 2], [16, 3, 4], [125, 2, 3], [16, 1, 2], [32, 2, 5]]); const y = Math.round(b ** (m / n));
+        f.push({ thema: "rational", text: `Bestimme die Basis b, für die ${P("b", `${m}/${n}`)} = ${y} gilt.`, vor: "b =", wert: b, pruef: `I(${y})**R(${n},${m})` }); }
+      { const [n, a] = w([[3, 50], [3, 100], [4, 50], [4, 300], [5, 100], [3, 200], [3, 500], [5, 1000]]);
+        f.push({ thema: "wurzel", text: `Bestimme, zwischen welchen aufeinanderfolgenden natürlichen Zahlen ${W(n, a)} liegt. Gib die kleinere an.`, wert: Math.floor(a ** (1 / n) + 1e-12), pruef: `floor(root(${a},${n}))` }); }
       return f;
     },
     4: function (r) {
@@ -713,19 +733,19 @@
         const at = zf(a), bt = zf(b);
         f.push({ thema: "p2", text: `${P(at, n)} · ${P(bt, n)}`, wert: Math.round((a * b) ** n * 1e9) / 1e9, pruef: `nsimplify(${a})**${n}*nsimplify(${b})**${n}` }); }
       { const b = w([2, 3, 5]), m = ganz(2, 5), n = w([-3, -2, 2, 3, 4]);
-        f.push({ thema: "p3", text: `${P(`(${P(b, m)})`, n)} als Potenz von ${b}`, vor: `${b} hoch`, wert: m * n, pruef: `log((I(${b})**${m})**(${n}),${b})` }); }
+        f.push({ thema: "p3", text: `Gib ${P(`(${P(b, m)})`, n)} als Potenz von ${b} an.`, vor: `${b} hoch`, wert: m * n, pruef: `log((I(${b})**${m})**(${n}),${b})` }); }
       { const m = ganz(3, 8), n = ganz(2, 6), k = ganz(4, 12);
-        f.push({ thema: "p1", text: `${B(`${P("x", m)} · ${P("x", n)}`, P("x", k))} als Potenz von x (x ≠ 0)`, vor: "x hoch", wert: m + n - k, pruef: `ex(x**${m}*x**${n}/x**${k})` }); }
+        f.push({ thema: "p1", text: `Gib ${B(`${P("x", m)} · ${P("x", n)}`, P("x", k))} als Potenz von x an (x ≠ 0).`, vor: "x hoch", wert: m + n - k, pruef: `ex(x**${m}*x**${n}/x**${k})` }); }
       { const [p, q] = w([[1, 2], [1, 3], [2, 3], [1, 4]]), [s, t] = w([[1, 3], [1, 2], [1, 6], [3, 4]]);
         const [z, n] = kuerze(p * t + s * q, q * t);
-        f.push({ thema: "terme", text: `${P("a", `${p}/${q}`)} · ${P("a", `${s}/${t}`)} als Potenz von a (a > 0)`, vor: "a hoch", wert: z / n, loesung: bruchText(z, n), pruef: `ex(x**R(${p},${q})*x**R(${s},${t}))` }); }
+        f.push({ thema: "terme", text: `Gib ${P("a", `${p}/${q}`)} · ${P("a", `${s}/${t}`)} als Potenz von a an (a > 0).`, vor: "a hoch", wert: z / n, loesung: bruchText(z, n), pruef: `ex(x**R(${p},${q})*x**R(${s},${t}))` }); }
       if (r() < 0.5) { const b = w([2, 3, 5]), n = ganz(3, 6);
         f.push(mische(r, { thema: "summe", typ: "auswahl", text: "Entscheide, welche Umformung richtig ist.",
           optionen: [`${b} · ${P(b, n)} = ${P(b, n + 1)}`, `${P(b, n)} + ${P(b, n)} = ${P(b, 2 * n)}`, `${P(b, n)} · ${P(b, 2)} = ${P(b, 2 * n)}`, `${P(b, n)} + ${P(b, 2)} = ${P(b, n + 2)}`] })); }
       else { const [p, q] = w([[1, 2], [1, 3], [2, 3], [2, 5], [3, 4]]), n = w([2, 3]);
         f.push(mische(r, { thema: "summe", typ: "auswahl", text: `Entscheide, welche Aussage über ${P(`(${p} + ${q})`, n)} richtig ist.`,
           optionen: [`${P(`(${p} + ${q})`, n)} = ${P(p + q, n)} = ${(p + q) ** n}`, `${P(`(${p} + ${q})`, n)} = ${P(p, n)} + ${P(q, n)} = ${p ** n + q ** n}`, `${P(`(${p} + ${q})`, n)} = ${P(p, n)} · ${P(q, n)} = ${(p * q) ** n}`] })); }
-      { const k = ganz(2, 5); f.push({ thema: "p3", text: `Es gilt ${P(2, 10)} ≈ ${P(10, 3)}. Bestimme damit einen Näherungswert für ${P(2, 10 * k)} in der Form ${P(10, "k")}.`, vor: "10 hoch", wert: 3 * k, pruef: `3*${k}` }); }
+      { const k = ganz(2, 9); f.push({ thema: "p3", text: `Es gilt ${P(2, 10)} ≈ ${P(10, 3)}. Bestimme damit einen Näherungswert für ${P(2, 10 * k)} in der Form ${P(10, "k")}.`, vor: "10 hoch", wert: 3 * k, pruef: `3*${k}` }); }
       return f;
     }
   };
@@ -751,6 +771,7 @@
   // Abschlusstest über alle Abschnitte: aus jedem Abschnittstest drei verschiedene Fragen,
   // jeweils aus einem eigenen Zufallsstrom, damit die Zahlen unabhängig vom Abschnittstest sind.
   const ABSCHLUSS = { id: 5, nr: "Abschluss", titel: "Abschlusstest über alle Abschnitte", jeAbschnitt: 3 };
+  const EINGANG = { id: 0, nr: "0", titel: "Eingangstest: Wissen aus Klasse 9" };
   // Feste Plätze (Fragennummern der Abschnittstests, ab 0): jeder Abschlusstest prüft dieselben Kernthemen.
   const ABSCHLUSS_PLAETZE = {
     1: [[2, 3], [0, 1], [5, 7]], // negativer Exponent, Vorzeichen, Potenz von 2 bzw. Aussage über a⁻ⁿ
@@ -784,7 +805,7 @@
     return zf(t.wert, 6);
   }
 
-  const daten = { ABSCHNITTE, ABSCHLUSS, THEMEN, NIVEAUS, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
+  const daten = { ABSCHNITTE, ABSCHLUSS, EINGANG, THEMEN, NIVEAUS, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
   const ziel = typeof window !== "undefined" ? window : globalThis;
   Object.assign(ziel, daten);
   if (typeof module !== "undefined") module.exports = daten;

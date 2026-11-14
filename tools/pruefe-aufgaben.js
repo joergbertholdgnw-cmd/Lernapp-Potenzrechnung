@@ -42,6 +42,28 @@ for (const ab of A.ABSCHNITTE) {
   if (JSON.stringify(A.erzeugeTest(ab.id, "x")) !== JSON.stringify(A.erzeugeTest(ab.id, "x"))) melde(`Test ${ab.nr}: nicht reproduzierbar`);
 }
 
+// Eingangstest: 6 Fragen zum Vorwissen (Themen mit abschnitt 0), jede mit mindestens 8 Varianten über die Startwerte
+{
+  const varianten = {};
+  for (let s = 0; s < 400; s++) {
+    const fragen = A.erzeugeTest(A.EINGANG.id, "probe|" + s);
+    if (fragen.length !== 6) melde(`Eingangstest (Start ${s}): ${fragen.length} Fragen`);
+    for (const f of fragen) {
+      if (!A.THEMEN[f.thema] || A.THEMEN[f.thema].abschnitt !== 0) melde(`Eingangstest Frage ${f.id}: Thema ${f.thema} gehört nicht zum Vorwissen`);
+      pruefeTeil(`Eingangstest (Start ${s}) Frage ${f.id}`, f, true);
+      (varianten[f.id] ||= new Set()).add(f.text);
+    }
+  }
+  for (const [id, v] of Object.entries(varianten)) if (v.size < 8) melde(`Eingangstest Frage ${id}: nur ${v.size} Varianten`);
+  for (const th of Object.keys(A.THEMEN)) if (!A.erzeugeTraining(th, "probe")) melde(`Kein Training für Thema ${th}`);
+}
+// C10: jede Frage der Abschnittstests hat über viele Startwerte mindestens 8 Varianten
+for (const ab of A.ABSCHNITTE) {
+  const varianten = {};
+  for (let s = 0; s < 400; s++) for (const f of A.erzeugeTest(ab.id, "probe|" + s)) (varianten[f.id] ||= new Set()).add(f.text + "|" + (f.optionen || []).join());
+  for (const [id, v] of Object.entries(varianten)) if (v.size < 8) melde(`Test ${ab.nr} Frage ${id}: nur ${v.size} Varianten`);
+}
+
 // Abschlusstest: 12 Fragen, je 3 aus jedem Abschnitt, Themen passend zum Abschnitt
 const S = A.ABSCHLUSS;
 for (let s = 0; s < 400; s++) {

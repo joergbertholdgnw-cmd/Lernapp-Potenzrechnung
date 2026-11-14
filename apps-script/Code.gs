@@ -111,7 +111,7 @@ function speichern(e, geraet) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    blatt().appendRow([new Date(), sauber(e.name, 40), sauber(e.schuelerId, 12), art, ganz(e.abschnitt, 1, 5), sauber(e.aufgabe, 6), sauber(e.titel, 60), ganz(e.niveau, 0, 3),
+    blatt().appendRow([new Date(), sauber(e.name, 40), sauber(e.schuelerId, 12), art, ganz(e.abschnitt, 0, 5), sauber(e.aufgabe, 6), sauber(e.titel, 60), ganz(e.niveau, 0, 3),
       ganz(e.durchgang, 1, 99), punkte, max, Math.round(100 * punkte / max), JSON.stringify(teile),
       (Array.isArray(e.wiederholen) ? e.wiederholen : []).slice(0, 17).map(function (s) { return sauber(s, 20); }).join(" "),
       teile.filter(function (t) { return t.lw; }).length]);

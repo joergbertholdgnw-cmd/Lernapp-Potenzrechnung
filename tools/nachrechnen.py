@@ -33,7 +33,7 @@ js = r"""
 const A = require('./js/aufgaben.js');
 const liste = [];
 for (const u of A.UEBUNGEN) for (const t of u.teile) if (t.typ !== 'auswahl') liste.push({ name: `Übung ${u.id}${t.id}`, wert: t.wert, pruef: t.pruef, toleranz: t.toleranz || 0 });
-for (const ab of [1, 2, 3, 4, 5]) for (let s = 0; s < 300; s++) for (const f of A.erzeugeTest(ab, 'probe|' + s))
+for (const ab of [0, 1, 2, 3, 4, 5]) for (let s = 0; s < 300; s++) for (const f of A.erzeugeTest(ab, 'probe|' + s))
   if (f.typ !== 'auswahl') liste.push({ name: `Test ${ab} Start ${s} Frage ${f.id}`, wert: f.wert, pruef: f.pruef, toleranz: f.toleranz || 0 });
 console.log(JSON.stringify(liste));
 """

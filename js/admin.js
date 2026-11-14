@@ -7,6 +7,14 @@
   const schluessel = (name) => String(name).trim().toLowerCase().replace(/\s+/g, " ");
   const prozentVon = (e) => Math.round((100 * e.punkte) / e.max);
   const lwVon = (e) => (e.teile || []).filter((t) => t.lw).length;
+  // Ältere Versionen des Google-Skripts speichern den Eingangstest (Abschnitt 0) als Abschnitt 1; erkennbar an „T0“.
+  const abschnittVon = (e) => (String(e.aufgabe) === "T0" ? 0 : Number(e.abschnitt));
+  // M-C2: Anteil der Übungs-Teilaufgaben, bei denen der Lösungsweg angesehen wurde
+  function lwQuote(p) {
+    let lw = 0, n = 0;
+    for (const e of p.eintraege) if (e.art !== "test") for (const t of e.teile || []) { n++; if (t.lw) lw++; }
+    return n ? { prozent: Math.round((100 * lw) / n), lw, n } : null;
+  }
   const uebungenVon = (ab) => UEBUNGEN.filter((u) => u.abschnitt === ab);
   let passwort = "";
   let daten = [];
@@ -59,15 +67,15 @@
     const personen = new Map();
     for (const e of daten) {
       const k = schluessel(e.name);
-      if (!personen.has(k)) personen.set(k, { name: e.name, geraete: new Set(), uebungen: {}, tests: { 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [], proAbschnitt: {} });
+      if (!personen.has(k)) personen.set(k, { name: e.name, geraete: new Set(), uebungen: {}, tests: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [], proAbschnitt: {} });
       const p = personen.get(k);
       p.geraete.add(e.schuelerId);
       p.eintraege.push(e);
       // Die App schickt mit jedem Ergebnis die aktuelle Liste; die neueste gilt (Training setzt Themen zurück)
       p.wiederholen = new Set(e.wiederholen || []);
       if (e.art === "test") {
-        (p.tests[e.abschnitt] ||= []).push(prozentVon(e));
-        if (Number(e.abschnitt) === ABSCHLUSS.id) {
+        (p.tests[abschnittVon(e)] ||= []).push(prozentVon(e));
+        if (abschnittVon(e) === ABSCHLUSS.id) {
           p.proAbschnitt = {};
           for (const t of e.teile || []) { const x = THEMEN[t.thema]?.abschnitt; if (x) p.proAbschnitt[x] = (p.proAbschnitt[x] || 0) + (t.richtig ? 1 : 0); }
         }
@@ -84,7 +92,7 @@
     }
     // Angemeldete Namen ohne Ergebnis ebenfalls zeigen
     for (const k of Object.keys(bindungen)) if (!personen.has(k))
-      personen.set(k, { name: k.replace(/(^|\s)\S/g, (z) => z.toUpperCase()), geraete: new Set(), uebungen: {}, tests: { 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [], proAbschnitt: {} });
+      personen.set(k, { name: k.replace(/(^|\s)\S/g, (z) => z.toUpperCase()), geraete: new Set(), uebungen: {}, tests: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] }, wiederholen: new Set(), eintraege: [], proAbschnitt: {} });
     const liste = [...personen.values()];
     liste.forEach((p) => { p.status = statusVon(p); });
     return liste.sort((a, b) => (nachStatus ? STATUS[a.status].rang - STATUS[b.status].rang : 0) || a.name.localeCompare(b.name, "de"));
@@ -181,13 +189,14 @@
       }
       html += `<section class="karte"><h2>Übersicht je Abschnitt</h2>
         <p class="klein"><b>Ziel:</b> Ein Abschnitt ist beherrscht, wenn der letzte Test mindestens ${ZIEL()} % hat (✓). Die Einheit ist beherrscht, wenn zusätzlich der letzte Abschlusstest mindestens ${ZIEL()} % hat, mit höchstens einem Fehler je Abschnitt.<br>
-        <b>Ü</b> = Übungen mit mindestens ${ZIEL()} % ohne Lösungsweg (von 5; „+n LW“ = erst nach angesehenem Lösungsweg). <b>Test</b> = letztes Ergebnis in %, dahinter / bestes und (Anzahl der Durchgänge). <b>Status:</b> ${Object.values(STATUS).map((x) => `${x.text} = ${x.info}`).join("; ")}. Klick auf einen Namen zeigt alle Einzelheiten. 🔒 = an ein Gerät gebunden, ⚠ = mehrere Geräte.</p>
+        <b>Ü</b> = Übungen mit mindestens ${ZIEL()} % ohne Lösungsweg (von 5; „+n LW“ = erst nach angesehenem Lösungsweg). <b>Test</b> = letztes Ergebnis in %, dahinter / bestes und (Anzahl der Durchgänge). <b>Eingang</b> = Eingangstest zum Vorwissen (zählt nicht zum Status). <b>LW-Quote</b> = Anteil der Übungs-Teilaufgaben mit angesehenem Lösungsweg; hohe Werte deuten eher auf Vermeiden als auf Verstehen. <b>Status:</b> ${Object.values(STATUS).map((x) => `${x.text} = ${x.info}`).join("; ")}. Klick auf einen Namen zeigt alle Einzelheiten. 🔒 = an ein Gerät gebunden, ⚠ = mehrere Geräte.</p>
         <div class="knopfreihe"><button class="knopf leise" id="sortieren">${nachStatus ? "Nach Namen sortieren" : "Nach Status sortieren (gefährdet zuerst)"}</button></div>
-        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th><th rowspan="2">Status</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">zuletzt aktiv</th><th rowspan="2">Wiederholen</th></tr>
+        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th><th rowspan="2">Status</th><th rowspan="2" title="Eingangstest zum Vorwissen aus Klasse 9">Ein-<br>gang</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2" title="Anteil der Übungs-Teilaufgaben, bei denen der Lösungsweg angesehen wurde">LW-<br>Quote</th><th rowspan="2">zuletzt aktiv</th><th rowspan="2">Wiederholen</th></tr>
         <tr>${ABSCHNITTE.map(() => "<th>Ü</th><th>Test</th>").join("")}</tr></thead><tbody>`;
       personen.forEach((p, i) => {
         html += `<tr class="klickbar" data-person="${i}"><td>${esc(p.name)} ${bindungen[schluessel(p.name)] ? '<span title="an ein Gerät gebunden">🔒</span>' : ""} ${p.geraete.size > 1 ? `<span title="${p.geraete.size} Geräte">⚠</span>` : ""}</td>
           <td class="zelle ${STATUS[p.status].klasse}" title="${STATUS[p.status].info}">${STATUS[p.status].text}</td>`;
+        html += testZelle(p.tests[0], (letzter(p.tests[0]) ?? -1) >= ZIEL());
         for (const a of ABSCHNITTE) {
           const liste = uebungenVon(a.id);
           const bearbeitet = liste.filter((u) => p.uebungen[u.id]).length;
@@ -197,6 +206,8 @@
           html += testZelle(p.tests[a.id], abschnittBeherrscht(p, a.id));
         }
         html += testZelle(p.tests[ABSCHLUSS.id], abschlussBeherrscht(p));
+        const q = lwQuote(p);
+        html += q ? `<td class="zelle ${q.prozent >= 50 ? "schlecht" : q.prozent >= 25 ? "mittel" : ""}" title="${q.lw} von ${q.n} Teilaufgaben">${q.prozent} %</td>` : '<td class="zelle"></td>';
         const za = zuletztAktiv(p);
         html += `<td class="zelle ${za.alt ? "mittel" : ""}" title="${za.alt ? "seit mehr als 7 Tagen kein Ergebnis" : ""}">${za.text}</td>`;
         html += `<td>${[...p.wiederholen].map((s) => esc(THEMEN[s]?.name || s)).join(", ")}</td></tr>`;

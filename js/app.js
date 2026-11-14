@@ -11,10 +11,15 @@
   const ohneHtml = (s) => String(s).replace(/<sup[^>]*>/g, "^").replace(/<\/span><span>/g, "/").replace(/<\/?[a-z][^>]*>/gi, "").replace(/\s+/g, " ").trim();
   const uebungenVon = (ab) => UEBUNGEN.filter((u) => u.abschnitt === ab);
   // Abschnittstests 1–4 und Abschlusstest 5
-  const testInfo = (ab) => (ab === ABSCHLUSS.id ? ABSCHLUSS : ABSCHNITTE.find((x) => x.id === ab));
-  const testZurueck = (ab) => (ab === ABSCHLUSS.id ? zeigeUebersicht : () => zeigeAbschnitt(ab));
-  const testOrt = (ab) => (ab === ABSCHLUSS.id ? "alle Abschnitte" : `Abschnitt ${testInfo(ab).nr}`);
-  const abschnittName = (a) => `Abschnitt ${a.nr}: ${a.titel}`;
+  // Eingangstest 0, Abschnittstests 1–4, Abschlusstest 5
+  const aufUebersicht = (ab) => ab === ABSCHLUSS.id || ab === EINGANG.id;
+  const testInfo = (ab) => (ab === ABSCHLUSS.id ? ABSCHLUSS : ab === EINGANG.id ? EINGANG : ABSCHNITTE.find((x) => x.id === ab));
+  const testZurueck = (ab) => (aufUebersicht(ab) ? zeigeUebersicht : () => zeigeAbschnitt(ab));
+  const testOrt = (ab) => (ab === ABSCHLUSS.id ? "alle Abschnitte" : ab === EINGANG.id ? "Vorwissen" : `Abschnitt ${testInfo(ab).nr}`);
+  const abschnittName = (a) => (a.id === EINGANG.id ? a.titel : `Abschnitt ${a.nr}: ${a.titel}`);
+  const zurueckText = (ab) => (aufUebersicht(ab) ? "Übersicht" : abschnittName(testInfo(ab)));
+  // Ältere Versionen des Google-Skripts speichern Abschnitt 0 als 1; der Eingangstest ist an „T0“ erkennbar.
+  const abschnittVon = (e) => (String(e.aufgabe) === "T0" ? EINGANG.id : Number(e.abschnitt));
 
   const LOB = ["Richtig!", "Genau!", "Sauber gelöst!", "Das sitzt!", "Stark!", "Treffer!"];
   const NOCHMAL = ["Noch nicht richtig. Nutze die Hilfe oder lies das Merkwissen."];
@@ -63,8 +68,14 @@
   const einheitBeherrscht = () => ABSCHNITTE.every((a) => abschnittBeherrscht(a.id)) && abschlussBeherrscht();
   // Nach einem Test unter dem Ziel müssen die verfehlten Themen erst trainiert werden
   const offeneThemen = (ab) => (stand.tests[ab]?.abgegeben ? stand.tests[ab].offeneThemen || [] : []);
+  // je Thema: true, wenn alle Fragen dazu im Test richtig waren
+  function themenErgebnis(teile) {
+    const t = {};
+    for (const x of teile) if (THEMEN[x.thema]) t[x.thema] = (t[x.thema] ?? true) && !!x.richtig;
+    return t;
+  }
   const themenVon = (ab) => Object.keys(THEMEN).filter((th) => THEMEN[th].abschnitt === ab);
-  const abschnittVonThema = (th) => ABSCHNITTE.find((x) => x.id === THEMEN[th].abschnitt);
+  const abschnittVonThema = (th) => (THEMEN[th].abschnitt === EINGANG.id ? EINGANG : ABSCHNITTE.find((x) => x.id === THEMEN[th].abschnitt));
   // Freischaltung (KONFIG.FREISCHALTEN): Abschnittstest erst nach den ★- und ★★-Übungen,
   // Abschlusstest erst, wenn jeder Abschnittstest einmal mit mindestens 50 % abgegeben wurde.
   function testGesperrt(ab) {
@@ -143,18 +154,18 @@
     app.innerHTML = `
       <section class="karte start">
         <h1>Rechnen mit Potenzen</h1>
-        <p class="lead">Vier Abschnitte: negative Exponenten, Zehnerpotenzen, rationale Exponenten und Potenzgesetze. In jedem Abschnitt findest du Merkwissen, Übungen mit Hilfen und am Ende einen Test zur Selbstkontrolle.</p>
+        <p class="lead">Vier Abschnitte: negative Exponenten, Zehnerpotenzen, rationale Exponenten und Potenzgesetze. Du startest mit einem kurzen Eingangstest zum Vorwissen. In jedem Abschnitt findest du Merkwissen, Übungen mit Hilfen und am Ende einen Test zur Selbstkontrolle.</p>
         <ul class="legende">
           <li><b>★</b> Basis: Grundaufgaben</li>
           <li><b>★★</b> Standard: Aufgaben, die mehrere Schritte brauchen</li>
-          <li><b>★★★</b> Expert: Sachaufgaben, Fehlersuche und Begründungen</li>
+          <li><b>★★★</b> Vertiefung: Sachaufgaben, Fehlersuche und Begründungen</li>
         </ul>
         <form id="nameForm" class="formular" autocomplete="off">
           <label>Vorname <input id="vorname" required maxlength="30" placeholder="z. B. Lena"></label>
           <label>Erster Buchstabe deines Nachnamens <input id="kuerzel" required maxlength="2" placeholder="z. B. M" class="kurz"></label>
           <p class="klein">Deine Ergebnisse werden unter diesem Namen für deine Lehrkraft gespeichert. Trage dich jedes Mal genau gleich ein. Beim ersten Mal wird dein Name mit diesem Gerät verbunden; arbeite deshalb immer am selben Gerät und im selben Browser.</p>
           <p class="fehler" id="anmeldeFehler" role="alert"></p>
-          <button class="knopf haupt" type="submit">Los geht's</button>
+          <button class="knopf haupt" type="submit">Los geht’s</button>
         </form>
       </section>`;
     document.getElementById("nameForm").addEventListener("submit", (e) => {
@@ -170,7 +181,7 @@
       anmelden(name).then((ok) => {
         if (ok) return zeigeUebersicht();
         knopf.disabled = false;
-        knopf.textContent = "Los geht's";
+        knopf.textContent = "Los geht’s";
       });
     });
   }
@@ -194,10 +205,11 @@
     for (const e of liste) {
       if (e.schuelerId) stand.id = String(e.schuelerId);
       if (e.art === "test") {
-        const ab = Number(e.abschnitt);
+        const ab = abschnittVon(e);
         const ts = testStand(ab);
         ts.verlauf.push(Math.round((100 * e.punkte) / e.max));
         ts.durchgang = Math.max(ts.durchgang, (Number(e.durchgang) || 1) + 1);
+        ts.themen = themenErgebnis(e.teile || []);
         if (ab === ABSCHLUSS.id) {
           ts.proAbschnitt = {};
           for (const t of e.teile || []) { const x = THEMEN[t.thema]?.abschnitt; if (x) ts.proAbschnitt[x] = (ts.proAbschnitt[x] || 0) + (t.richtig ? 1 : 0); }
@@ -241,6 +253,7 @@
     const tests = ABSCHNITTE.filter((a) => besterTest(a.id) !== null).length;
     const beherrscht = ABSCHNITTE.filter((a) => abschnittBeherrscht(a.id)).length;
     const naechster = ABSCHNITTE.find((a) => !abschnittBeherrscht(a.id));
+    const eingang = stand.tests[EINGANG.id], eingangFertig = !!eingang?.verlauf?.length;
     const schwach = Object.entries(stand.themaFehler).filter(([, n]) => n >= K.WIEDERHOLUNG_AB).map(([s]) => s);
 
     let html = kopf() + `
@@ -249,8 +262,11 @@
         <div>
           <h2>${einheitBeherrscht() ? "Ziel erreicht: Du beherrschst das Rechnen mit Potenzen!" : fertig === 0 && tests === 0 ? "Willkommen!" : "Dein Fortschritt"}</h2>
           <p><b>${beherrscht} von 4 Abschnitten beherrscht</b> (Ziel: mindestens ${ZIEL()} % im letzten Test des Abschnitts). ${fertig} von ${gesamt} Übungen erledigt.</p>
-          ${naechster ? `<button class="knopf haupt" data-abschnitt="${naechster.id}">Weiter mit ${esc(abschnittName(naechster))}</button>`
+          <div class="knopfreihe">
+          ${!eingangFertig ? '<button class="knopf haupt" id="eingangStarten">Starte mit dem Eingangstest</button>'
+            : naechster ? `<button class="knopf haupt" data-abschnitt="${naechster.id}">Weiter mit ${esc(abschnittName(naechster))}</button>`
             : !abschlussBeherrscht() ? '<button class="knopf haupt" id="zumAbschluss">Weiter mit dem Abschlusstest</button>' : ""}
+          <button class="knopf leise" id="kompetenzpass">📄 Mein Kompetenzpass</button></div>
         </div>
       </section>`;
 
@@ -259,6 +275,16 @@
         <div class="chips">${schwach.map((s) => `<button class="chip" data-training="${s}">🔁 ${THEMEN[s].name}</button>`).join("")}</div></section>`;
     }
 
+    const lE = letzterTest(EINGANG.id), sperreE = offeneThemen(EINGANG.id);
+    html += `<section class="karte eingang">
+        <h2>🧭 ${EINGANG.titel}</h2>
+        ${!eingangFertig ? `<p>Sechs kurze Fragen zu Potenzen, Quadratwurzeln und Brüchen aus Klasse 9. So siehst du, ob du gut vorbereitet bist. Dauer: etwa 5 Minuten.</p>
+          <div class="knopfreihe"><button class="knopf haupt" id="eingangStarten2">${eingang && !eingang.abgegeben && Object.keys(eingang.eingaben).length ? "Eingangstest fortsetzen" : "Eingangstest starten"}</button></div>`
+        : abschnittBeherrscht(EINGANG.id) ? `<p>✓ Bestanden (${lE} %). Dein Vorwissen sitzt.</p>`
+        : `<p>Letztes Ergebnis: ${lE} %. Frische diese Themen auf:</p>
+          <div class="chips">${themenVon(EINGANG.id).filter((th) => stand.tests[EINGANG.id].themen?.[th] === false).map((th) => `<button class="chip" data-training="${th}">🔁 ${THEMEN[th].name}</button>`).join("")}</div>
+          ${sperreE.length ? "" : '<div class="knopfreihe"><button class="knopf leise" id="eingangStarten2">Eingangstest wiederholen</button></div>'}`}
+      </section>`;
     html += `<h2 class="abschnitte-titel">Abschnitte</h2><div class="raster abschnitte">`;
     for (const a of ABSCHNITTE) {
       const f = fertigeUebungen(a.id).length, n = uebungenVon(a.id).length, l = letzterTest(a.id);
@@ -285,6 +311,8 @@
     app.innerHTML = html;
     kopfVerdrahten();
     document.getElementById("abschlusstest")?.addEventListener("click", () => zeigeTest(ABSCHLUSS.id));
+    ["eingangStarten", "eingangStarten2"].forEach((id) => document.getElementById(id)?.addEventListener("click", () => zeigeTest(EINGANG.id)));
+    document.getElementById("kompetenzpass").addEventListener("click", zeigeKompetenzpass);
     document.getElementById("zumAbschluss")?.addEventListener("click", () => document.querySelector(".abschluss").scrollIntoView({ behavior: "smooth" }));
     app.querySelectorAll("[data-abschnitt]").forEach((b) => b.addEventListener("click", () => zeigeAbschnitt(+b.dataset.abschnitt)));
     verdrahteTraining(app);
@@ -369,14 +397,14 @@
     else if (z.versuche === 1) rueck = `<p class="rueck mittel">${z.meldung || "Noch nicht richtig."} Du hast noch einen Versuch.</p>`;
     const hilfe = z.hilfe ? `<div class="hilfe"><p><b>Merkwissen:</b> ${w.merke}</p>${w.tipps.length ? `<ul>${w.tipps.map((x) => `<li>${x}</li>`).join("")}</ul>` : ""}</div>` : "";
     const geschafft = tr.folge >= TRAINING_ZIEL;
-    let html = kopf(abschnittName(a)) + `
+    let html = kopf(a.id === EINGANG.id ? "Übersicht" : abschnittName(a)) + `
       <article class="karte aufgabe">
         <p class="klein">Training · ${esc(abschnittName(a))}</p>
         <h1>🔁 ${w.name}</h1>
         <p class="training-stand">Richtig in Folge ohne Hilfe: <span class="punkte">${punkte}</span> ${tr.folge} von ${TRAINING_ZIEL}</p>`;
     if (geschafft) {
       html += `<section class="ergebnis feiern"><h2>Geschafft!</h2><p>Du hast ${TRAINING_ZIEL} Aufgaben in Folge ohne Hilfe richtig gelöst. Das Thema „${w.name}“ sitzt.</p>
-        <div class="knopfreihe">${testKnopfNachTraining(th)}<button class="knopf leise" id="weiterTrainieren">Weiter trainieren</button><button class="knopf leise" id="zumAbschnitt">Zum Abschnitt</button></div></section>`;
+        <div class="knopfreihe">${testKnopfNachTraining(th)}<button class="knopf leise" id="weiterTrainieren">Weiter trainieren</button><button class="knopf leise" id="zumAbschnitt">${a.id === EINGANG.id ? "Zur Übersicht" : "Zum Abschnitt"}</button></div></section>`;
     } else {
       html += `<div class="teil"><p class="aufgabentext">${t.text}</p>
         ${z.fertig ? "" : `<form class="eingabe" novalidate>${eingabeHtml(t, `tr-${th}-${tr.nr}`, null, `<button class="knopf haupt" type="submit">Prüfen</button>${z.hilfe ? "" : '<button class="knopf leise" type="button" id="hilfeKnopf">💡 Hilfe</button>'}`)}<p class="fehler" role="alert"></p></form>`}
@@ -385,11 +413,11 @@
     }
     html += `</article>`;
     app.innerHTML = html;
-    kopfVerdrahten(() => zeigeAbschnitt(a.id));
+    kopfVerdrahten(testZurueck(a.id));
     document.getElementById("hilfeKnopf")?.addEventListener("click", () => { z.hilfe = true; speichern(); zeigeTraining(th); });
     document.getElementById("naechste")?.addEventListener("click", () => { tr.nr++; tr.aktuell = null; speichern(); zeigeTraining(th); });
     document.getElementById("weiterTrainieren")?.addEventListener("click", () => { tr.folge = 0; tr.nr++; tr.aktuell = null; speichern(); zeigeTraining(th); });
-    document.getElementById("zumAbschnitt")?.addEventListener("click", () => zeigeAbschnitt(a.id));
+    document.getElementById("zumAbschnitt")?.addEventListener("click", testZurueck(a.id));
     document.getElementById("testNachTraining")?.addEventListener("click", (e) => zeigeTest(+e.currentTarget.dataset.test));
     const form = app.querySelector("form.eingabe");
     if (form) {
@@ -602,10 +630,10 @@
     if (ts.abgegeben) { ts.durchgang++; ts.eingaben = {}; ts.abgegeben = false; ts.ergebnis = null; speichern(); }
     const fragen = testFragen(ab, ts);
     const istAbschluss = ab === ABSCHLUSS.id;
-    let html = kopf(istAbschluss ? "Übersicht" : abschnittName(a)) + `
+    let html = kopf(zurueckText(ab)) + `
       <article class="karte aufgabe">
         <p class="klein">Test zur Selbstkontrolle · ${testOrt(ab)} · Durchgang ${ts.durchgang}</p>
-        <h1>${istAbschluss ? `🏁 ${esc(a.titel)}` : `🎯 Test: ${esc(a.titel)}`}</h1>
+        <h1>${istAbschluss ? `🏁 ${esc(a.titel)}` : ab === EINGANG.id ? `🧭 ${esc(a.titel)}` : `🎯 Test: ${esc(a.titel)}`}</h1>
         <p class="klein">Beantworte alle ${fragen.length} Fragen ohne Hilfen und ohne Taschenrechner. Brüche kannst du als 3/4 eingeben. Erst mit „Test abgeben“ wird ausgewertet; bis dahin kannst du alles ändern.</p>
         <form id="testForm" novalidate><ol class="teile">`;
     for (const f of fragen) html += `<li class="teil" data-frage="${f.id}"><div class="teil-kopf"><b>Frage ${f.id}</b></div><p class="aufgabentext">${f.text}</p>${eingabeHtml(f, `t${ab}-${f.id}`, ts.eingaben[f.id])}<p class="fehler" role="alert"></p></li>`;
@@ -651,6 +679,7 @@
     ts.abgegeben = true;
     ts.verlauf.push(prozent);
     ts.ergebnis = { punkte, max: fragen.length, prozent };
+    ts.themen = themenErgebnis(teile);
     if (ab === ABSCHLUSS.id) {
       ts.proAbschnitt = {};
       fragen.forEach((f, i) => { ts.proAbschnitt[f.abschnitt] = (ts.proAbschnitt[f.abschnitt] || 0) + (teile[i].richtig ? 1 : 0); });
@@ -660,7 +689,7 @@
     ts.offeneThemen = abschnittOderAbschlussBeherrscht(ab) ? [] : verfehlt;
     speichern();
     const a = testInfo(ab);
-    Speicher.senden({ name: stand.name, schuelerId: stand.id, art: "test", aufgabe: "T" + ab, abschnitt: ab, titel: ab === ABSCHLUSS.id ? "Abschlusstest" : `Test ${a.nr}`, niveau: 0, durchgang: ts.durchgang, punkte, max: fragen.length, teile,
+    Speicher.senden({ name: stand.name, schuelerId: stand.id, art: "test", aufgabe: "T" + ab, abschnitt: ab, titel: ab === ABSCHLUSS.id ? "Abschlusstest" : ab === EINGANG.id ? "Eingangstest" : `Test ${a.nr}`, niveau: 0, durchgang: ts.durchgang, punkte, max: fragen.length, teile,
       wiederholen: Object.entries(stand.themaFehler).filter(([, n]) => n >= K.WIEDERHOLUNG_AB).map(([th]) => th) })
       .then((r) => sendestatus(r, () => {}));
     zeigeTestErgebnis(ab, fragen);
@@ -674,13 +703,15 @@
     const { punkte, max, prozent } = ts.ergebnis;
     const falscheThemen = [...new Set(fragen.filter((f) => !(ts.eingaben[f.id] != null && bewerte(f, ts.eingaben[f.id]).ok)).map((f) => f.thema))];
     const erreicht = abschnittOderAbschlussBeherrscht(ab);
-    const urteil = erreicht
+    const urteil = ab === EINGANG.id
+      ? (erreicht ? "Dein Vorwissen aus Klasse 9 sitzt. Los geht’s mit Abschnitt 1!" : "Frische zuerst die Themen unten mit dem Auffrischungstraining auf. Danach kannst du den Eingangstest wiederholen oder direkt mit Abschnitt 1 beginnen.")
+      : erreicht
       ? (istAbschluss ? "Ziel erreicht: Du beherrschst das Rechnen mit Potenzen!" : `Ziel erreicht: Du beherrschst Abschnitt ${a.nr}.`) + (prozent < 100 ? " Schau dir die Fehler unten trotzdem an." : "")
       : istAbschluss && prozent >= ZIEL()
         ? `Ziel noch nicht erreicht: In ${abschlussLuecken().map((x) => "Abschnitt " + x.nr).join(", ")} waren es mehr als ein Fehler. Trainiere die Themen unten und schreib dann einen neuen Abschlusstest.`
         : `Ziel noch nicht erreicht (mindestens ${ZIEL()} %). Trainiere die Themen unten mit neuen Zahlen und mach dann einen neuen Test.`;
     const richtig = (f) => ts.eingaben[f.id] != null && bewerte(f, ts.eingaben[f.id]).ok;
-    let html = kopf(istAbschluss ? "Übersicht" : abschnittName(a)) + `
+    let html = kopf(zurueckText(ab)) + `
       <section class="karte ergebnis ${erreicht ? "feiern" : ""}">
         <p class="klein">Test zur Selbstkontrolle · ${testOrt(ab)} · Durchgang ${ts.durchgang}</p>
         <h1>${punkte} von ${max} Punkten (${prozent} %)</h1>
@@ -708,7 +739,7 @@
         <p class="rueck ${ok ? "gut" : "schlecht"}">${ok ? "✓ Richtig" : "✗ Nicht richtig"} · Deine Antwort: ${ein == null ? "keine" : antwortAnzeige(f, ein)}</p>
         ${ok ? "" : `<p class="klein">Richtig ist: ${f.vor && f.typ !== "auswahl" ? f.vor + " " : ""}${loesungText(f)}${f.einheit && f.typ !== "auswahl" ? " " + f.einheit : ""}</p>`}</li>`;
     }
-    html += `</ol><div class="knopfreihe">${offeneThemen(ab).length ? "" : `<button class="knopf haupt" id="neuerTest">${istAbschluss ? "Neuer Abschlusstest" : "Neuer Test mit neuen Zahlen"}</button>`}<button class="knopf leise" id="zumAbschnitt">${istAbschluss ? "Zur Übersicht" : "Zum Abschnitt"}</button></div>
+    html += `</ol><div class="knopfreihe">${offeneThemen(ab).length ? "" : `<button class="knopf haupt" id="neuerTest">${istAbschluss ? "Neuer Abschlusstest" : "Neuer Test mit neuen Zahlen"}</button>`}<button class="knopf leise" id="zumAbschnitt">${aufUebersicht(ab) ? "Zur Übersicht" : "Zum Abschnitt"}</button></div>
       ${offeneThemen(ab).length ? '<p class="klein">Einen neuen Test kannst du starten, sobald du die Themen oben trainiert hast.</p>' : ""}</section>`;
     app.innerHTML = html;
     kopfVerdrahten(testZurueck(ab));
@@ -716,6 +747,38 @@
     verdrahteTraining(app);
     document.getElementById("zumAbschnitt").addEventListener("click", testZurueck(ab));
     app.querySelectorAll("[data-zum-abschnitt]").forEach((b) => b.addEventListener("click", () => zeigeAbschnitt(+b.dataset.zumAbschnitt)));
+    window.scrollTo(0, 0);
+  }
+
+  // ───────────── Kompetenzpass ─────────────
+  // Übersicht der beherrschten Abschnitte und Themen zum Ausdrucken, ohne Noten.
+  function themaStatus(th) {
+    if ((stand.training?.[th]?.geschafft || 0) > 0) return ["sicher", "✓ sicher (Training geschafft)"];
+    // maßgeblich ist der letzte Test des Abschnitts, sonst der letzte Abschlusstest
+    const ergebnis = stand.tests[THEMEN[th].abschnitt]?.themen?.[th] ?? stand.tests[ABSCHLUSS.id]?.themen?.[th];
+    if (ergebnis === undefined) return ["offen", "– noch nicht geprüft"];
+    return ergebnis ? ["sicher", "✓ sicher"] : ["ueben", "◐ noch üben"];
+  }
+  function zeigeKompetenzpass() {
+    const heute = new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
+    const zeile = (th) => { const [k, t] = themaStatus(th); return `<tr><td>${THEMEN[th].name}</td><td class="zelle ${k === "sicher" ? "gut" : k === "ueben" ? "mittel" : ""}">${t}</td></tr>`; };
+    let html = kopf("Übersicht") + `
+      <article class="karte kompetenzpass">
+        <h1>Kompetenzpass: Rechnen mit Potenzen</h1>
+        <p><b>${esc(stand.name)}</b> · Stand: ${heute}</p>
+        <p class="klein">Der Pass zeigt, was du schon sicher kannst. Er enthält keine Noten. „Sicher“ heißt: Im letzten Test waren alle Fragen zu diesem Thema richtig, oder du hast das Training geschafft.</p>
+        <h2>${einheitBeherrscht() ? "✓ Ziel der Einheit erreicht" : "Ziel der Einheit noch nicht erreicht"}</h2>`;
+    for (const a of ABSCHNITTE) {
+      const l = letzterTest(a.id);
+      html += `<h3>${esc(abschnittName(a))} – ${abschnittBeherrscht(a.id) ? "✓ beherrscht" : l === null ? "noch nicht getestet" : `noch nicht beherrscht (letzter Test ${l} %)`}</h3>
+        <div class="tabelle-huelle"><table><tbody>${themenVon(a.id).map(zeile).join("")}</tbody></table></div>`;
+    }
+    const lA = letzterTest(ABSCHLUSS.id);
+    html += `<h3>Abschlusstest – ${abschlussBeherrscht() ? "✓ bestanden" : lA === null ? "noch nicht geschrieben" : `noch nicht bestanden (letzter Test ${lA} %)`}</h3>
+      <div class="knopfreihe"><button class="knopf haupt" id="drucken">🖨 Drucken oder als PDF speichern</button></div></article>`;
+    app.innerHTML = html;
+    kopfVerdrahten(zeigeUebersicht);
+    document.getElementById("drucken").addEventListener("click", () => window.print());
     window.scrollTo(0, 0);
   }
 
