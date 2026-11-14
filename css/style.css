@@ -99,6 +99,9 @@ input.haken { width: auto; display: inline; margin-right: 6px; }
 .punkt.voll { background: var(--gut); border-color: var(--gut); }
 .ergebnis.feiern { padding: 4px 14px 12px; border-radius: 8px; }
 .hilfe ul { margin: 4px 0 0; }
+.hier-ueben { align-items: center; margin: 0 0 6px 6px; }
+.unterstuetzung { border: 2px solid var(--schlecht); }
+.unterstuetzung li { margin: 4px 0; }
 
 /* Merkwissen */
 .merke { background: var(--grau); border-left: 4px solid var(--navy); border-radius: 0 8px 8px 0; padding: 4px 14px; margin: 10px 0; }

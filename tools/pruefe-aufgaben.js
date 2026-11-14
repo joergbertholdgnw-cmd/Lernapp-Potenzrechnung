@@ -81,6 +81,11 @@ function pruefeTeil(name, t, still) {
   const regeln = { toleranz: t.toleranz, exakt: t.exakt, stellen: t.stellen };
   for (const x of [anzeige, ...loes]) if (x && !/[√^(]/.test(x) && !istRichtig(x, t.wert, regeln)) melde(`${name}: angezeigte Lösung „${x}“ wird abgelehnt (Soll ${t.wert})`);
   if (!istRichtig(deutsch(t.wert), t.wert, regeln) && !istRichtig(String(Math.round(t.wert * 100) / 100).replace(".", ","), t.wert, regeln)) melde(`${name}: Sollwert als Eingabe wird abgelehnt`);
+  // B6: typische Fehleingaben dürfen nicht als richtig gelten, und jede braucht einen Rückmeldetext
+  for (const f of t.fehler || []) {
+    if (!Number.isFinite(f.wert) || !f.text) melde(`${name}: Fehleingabe ohne Wert oder Text`);
+    else if (istRichtig(deutsch(Math.round(f.wert * 1e6) / 1e6), t.wert, regeln)) melde(`${name}: Fehleingabe ${f.wert} gilt als richtig`);
+  }
   // A3: Exponenten von Variablen nur exakt
   if (t.vor && /^[a-z] hoch$/.test(t.vor) && !t.exakt) melde(`${name}: Exponent ist nicht als „exakt“ markiert`);
   // A2: Aufgaben mit „Runde auf … Nachkommastellen“ müssen die Stellenzahl prüfen

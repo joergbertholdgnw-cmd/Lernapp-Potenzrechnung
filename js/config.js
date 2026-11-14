@@ -7,5 +7,9 @@ window.KONFIG = {
   // Beherrschungskriterium in Prozent: Ein Abschnitt gilt als beherrscht, wenn der letzte Abschnittstest
   // mindestens diesen Wert erreicht. Die Einheit gilt als beherrscht, wenn zusätzlich der letzte Abschlusstest
   // diesen Wert erreicht und in jedem Abschnitt höchstens ein Fehler war. Gilt auch für „gelöst“ im Lehrerbereich.
-  BEHERRSCHT_AB: 75
+  BEHERRSCHT_AB: 75,
+  // Freischaltung: true = Abschnittstest erst nach den ★- und ★★-Übungen des Abschnitts,
+  // Abschlusstest erst, wenn jeder Abschnittstest einmal mit mindestens 50 % abgegeben wurde.
+  // false = alle Tests jederzeit möglich.
+  FREISCHALTEN: true
 };

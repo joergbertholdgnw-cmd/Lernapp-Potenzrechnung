@@ -91,6 +91,24 @@
   }
 
   const letzter = (v) => (v.length ? v[v.length - 1] : null);
+  // Themen mit der niedrigsten Quote in den Tests der Person (höchstens zwei, nur unter 75 %)
+  function schwaechsteThemen(p) {
+    const q = {};
+    for (const e of p.eintraege) if (e.art === "test") for (const t of e.teile || []) {
+      if (!THEMEN[t.thema]) continue;
+      q[t.thema] = q[t.thema] || { r: 0, n: 0 };
+      q[t.thema].n++;
+      if (t.richtig) q[t.thema].r++;
+    }
+    return Object.entries(q).map(([th, w]) => [th, w.r / w.n]).filter(([, x]) => x < 0.75).sort((a, b) => a[1] - b[1]).slice(0, 2).map(([th]) => th);
+  }
+  const letzteZeit = (p) => p.eintraege.reduce((m, e) => (String(e.zeit) > m ? String(e.zeit) : m), "");
+  function zuletztAktiv(p) {
+    const z = letzteZeit(p);
+    if (!z) return { text: "–", alt: false };
+    const d = new Date(z), tage = (Date.now() - d.getTime()) / 864e5;
+    return { text: d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }), alt: tage > 7 };
+  }
   const abschnittBeherrscht = (p, ab) => (letzter(p.tests[ab]) ?? -1) >= ZIEL();
   const abschlussBeherrscht = (p) => (letzter(p.tests[ABSCHLUSS.id]) ?? -1) >= ZIEL() && ABSCHNITTE.every((a) => (p.proAbschnitt[a.id] ?? 0) >= ABSCHLUSS.jeAbschnitt - 1);
   function statusVon(p) {
@@ -153,11 +171,19 @@
 
     if (!personen.length) html += '<section class="karte"><p>Noch keine Ergebnisse eingegangen.</p></section>';
     else {
+      const unterstuetzen = personen.filter((p) => p.status === "gefaehrdet");
+      const ruhig = personen.filter((p) => p.status !== "beherrscht" && zuletztAktiv(p).alt);
+      if (unterstuetzen.length || ruhig.length) {
+        html += `<section class="karte unterstuetzung"><h2>⚠ Braucht Unterstützung</h2>
+          ${unterstuetzen.length ? `<p>Gefährdet (letzter Test unter 50 % oder zwei Tests in Folge unter dem Ziel):</p><ul>${unterstuetzen.map((p) => `<li><b>${esc(p.name)}</b> – schwächste Themen: ${schwaechsteThemen(p).map((th) => esc(THEMEN[th].name)).join(", ") || "–"} · zuletzt aktiv ${zuletztAktiv(p).text}</li>`).join("")}</ul>` : ""}
+          ${ruhig.length ? `<p>Seit mehr als 7 Tagen ohne neues Ergebnis, Ziel noch nicht erreicht: ${ruhig.map((p) => esc(p.name)).join(", ")}</p>` : ""}
+          <p class="klein">Vorschlag: mit diesen Lernenden in der nächsten Stunde sprechen oder sie in einer Kleingruppe zum genannten Thema begleiten.</p></section>`;
+      }
       html += `<section class="karte"><h2>Übersicht je Abschnitt</h2>
         <p class="klein"><b>Ziel:</b> Ein Abschnitt ist beherrscht, wenn der letzte Test mindestens ${ZIEL()} % hat (✓). Die Einheit ist beherrscht, wenn zusätzlich der letzte Abschlusstest mindestens ${ZIEL()} % hat, mit höchstens einem Fehler je Abschnitt.<br>
         <b>Ü</b> = Übungen mit mindestens ${ZIEL()} % ohne Lösungsweg (von 5; „+n LW“ = erst nach angesehenem Lösungsweg). <b>Test</b> = letztes Ergebnis in %, dahinter / bestes und (Anzahl der Durchgänge). <b>Status:</b> ${Object.values(STATUS).map((x) => `${x.text} = ${x.info}`).join("; ")}. Klick auf einen Namen zeigt alle Einzelheiten. 🔒 = an ein Gerät gebunden, ⚠ = mehrere Geräte.</p>
         <div class="knopfreihe"><button class="knopf leise" id="sortieren">${nachStatus ? "Nach Namen sortieren" : "Nach Status sortieren (gefährdet zuerst)"}</button></div>
-        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th><th rowspan="2">Status</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">Wiederholen</th></tr>
+        <div class="tabelle-huelle"><table><thead><tr><th rowspan="2">Name</th><th rowspan="2">Status</th>${ABSCHNITTE.map((a) => `<th colspan="2" title="${esc(a.titel)}">Abschnitt ${a.nr}</th>`).join("")}<th rowspan="2" title="Abschlusstest über alle Abschnitte">Abschluss-<br>test</th><th rowspan="2">zuletzt aktiv</th><th rowspan="2">Wiederholen</th></tr>
         <tr>${ABSCHNITTE.map(() => "<th>Ü</th><th>Test</th>").join("")}</tr></thead><tbody>`;
       personen.forEach((p, i) => {
         html += `<tr class="klickbar" data-person="${i}"><td>${esc(p.name)} ${bindungen[schluessel(p.name)] ? '<span title="an ein Gerät gebunden">🔒</span>' : ""} ${p.geraete.size > 1 ? `<span title="${p.geraete.size} Geräte">⚠</span>` : ""}</td>
@@ -171,6 +197,8 @@
           html += testZelle(p.tests[a.id], abschnittBeherrscht(p, a.id));
         }
         html += testZelle(p.tests[ABSCHLUSS.id], abschlussBeherrscht(p));
+        const za = zuletztAktiv(p);
+        html += `<td class="zelle ${za.alt ? "mittel" : ""}" title="${za.alt ? "seit mehr als 7 Tagen kein Ergebnis" : ""}">${za.text}</td>`;
         html += `<td>${[...p.wiederholen].map((s) => esc(THEMEN[s]?.name || s)).join(", ")}</td></tr>`;
       });
       html += `</tbody></table></div></section>
