@@ -11,6 +11,7 @@
   let passwort = "";
   let daten = [];
   let bindungen = {};
+  let plaetze = null; // { belegt, max } vom Google-Skript
 
   function zeigeAnmeldung(meldung) {
     wurzel.innerHTML = `
@@ -38,6 +39,7 @@
       if (!a.ok) { passwort = ""; return zeigeAnmeldung(a.fehler || "Anmeldung fehlgeschlagen."); }
       daten = a.ergebnisse || [];
       bindungen = Object.fromEntries((a.bindungen || []).map((b) => [b.schluessel, b.seit]));
+      plaetze = a.plaetze || null;
       zeigeUebersicht();
     } catch (e) {
       zeigeAnmeldung("Keine Verbindung zum Google-Skript (" + e.message + "). Häufigste Ursache: Bei der Bereitstellung ist nicht „Zugriff: Jeder“ eingestellt.");
@@ -92,8 +94,9 @@
         <div class="knopfreihe"><button class="knopf leise" id="neu">↻ Aktualisieren</button><button class="knopf leise" id="csv">⬇ CSV-Export</button><button class="knopf leise" id="abmelden">Abmelden</button></div>
       </header>
       ${Speicher.istDemo() ? '<p class="hinweis-demo">Demo-Modus: nur Ergebnisse dieses Geräts.</p>' : ""}
+      ${plaetze && plaetze.belegt >= plaetze.max ? `<p class="hinweis-demo">Die Tabelle ist voll: ${plaetze.max} Namen sind angemeldet. Neue Namen werden abgelehnt, bis die Ergebnisse für eine neue Lerngruppe zurückgesetzt werden.</p>` : ""}
       <section class="karte kennzahlen">
-        <div class="kennzahl"><b>${personen.length}</b>Schülerinnen und Schüler</div>
+        <div class="kennzahl"><b>${plaetze ? `${plaetze.belegt} / ${plaetze.max}` : personen.length}</b>${plaetze ? "Plätze belegt" : "Schülerinnen und Schüler"}</div>
         <div class="kennzahl"><b>${daten.length - nTests}</b>bearbeitete Übungen</div>
         <div class="kennzahl"><b>${nTests}</b>Tests abgegeben</div>
         <div class="kennzahl"><b>${daten.reduce((n, e) => n + lwVon(e), 0)}</b>Lösungswege angesehen</div>

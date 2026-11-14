@@ -18,6 +18,7 @@ Abschnitt 2.4 (irrationale Exponenten) ist absichtlich nicht enthalten.
 - Zum Schluss gibt es auf der Übersichtsseite einen **Abschlusstest über alle Abschnitte**: 12 Fragen, je 3 aus jedem Abschnittstest, bei jedem Durchgang neu ausgewählt und mit neuen Zahlen. Nach der Abgabe zeigt die App das Ergebnis je Abschnitt und führt direkt in den Abschnitt, in dem noch geübt werden sollte.
 - Eingaben: Brüche (3/4), Dezimalzahlen mit Komma oder Punkt; Zehnerpotenzen mit getrenntem Vorfaktor und Exponenten (der Vorfaktor muss zwischen 1 und 10 liegen). Nicht abbrechende Werte gelten auf zwei Nachkommastellen gerundet als richtig.
 - Anmeldung, Gerätebindung, Abmelden und Lehrerbereich funktionieren wie bei der App „Kosinussatz mit Sternen“.
+- **Höchstens 35 Schülerinnen und Schüler je Tabelle:** Ab dem 36. neuen Namen lehnt das Google-Skript die Anmeldung mit einem Hinweis ab. Bereits eingetragene Namen können weiterarbeiten; das Lösen einer Gerätebindung gibt keinen Platz frei, erst „Alle Ergebnisse zurücksetzen“. Die Zahl steht oben in `apps-script/Code.gs` bei `MAX_SCHUELER`. Im Demo-Modus gilt die Grenze nicht.
 
 ## Einrichtung (einmalig, etwa 10 Minuten)
 
@@ -34,13 +35,14 @@ Ohne eingetragene URL läuft die App im **Demo-Modus**: Ergebnisse bleiben im Br
 
 ## Lehrerbereich (`admin.html`)
 
-Nach der Passworteingabe zeigt der Lehrerbereich eine Tabelle je Person und Abschnitt: gelöste Übungen (ohne Lösungsweg) und das beste Testergebnis mit Anzahl der Durchgänge, dazu eine Spalte für den Abschlusstest. Dazu kommen die Lösungsquote je Thema in Tests und Übungen und eine Detailansicht je Person mit allen Eingaben; bei Tests stehen dort Frage und Sollwert. Außerdem gibt es einen CSV-Export, das Lösen der Gerätebindung und einen Neustart für eine neue Lerngruppe mit Archivblatt.
+Nach der Passworteingabe zeigt der Lehrerbereich die belegten Plätze (z. B. 28 / 35) und eine Tabelle je Person und Abschnitt: gelöste Übungen (ohne Lösungsweg) und das beste Testergebnis mit Anzahl der Durchgänge, dazu eine Spalte für den Abschlusstest. Dazu kommen die Lösungsquote je Thema in Tests und Übungen und eine Detailansicht je Person mit allen Eingaben; bei Tests stehen dort Frage und Sollwert. Außerdem gibt es einen CSV-Export, das Lösen der Gerätebindung und einen Neustart für eine neue Lerngruppe mit Archivblatt.
 
 ## Prüfen nach Änderungen
 
 ```
 node tools/pruefe-aufgaben.js   # Aufbau, Themen, Hilfen, Eingabe-Erkennung; Tests mit 400 Startwerten je Abschnitt
 python tools/nachrechnen.py     # Zweitrechnung aller Sollwerte mit sympy (Übungen und 300 Testdurchgänge je Abschnitt)
+node tools/pruefe-skript.js     # Google-Skript mit nachgebauter Tabelle: Grenze von 35 Namen, Gerätebindung, Neustart
 ```
 
 Jede Teilaufgabe trägt in `js/aufgaben.js` einen sympy-Ausdruck (`pruef`), der die Aufgabe aus den Angaben beschreibt. Das Skript rechnet ihn exakt aus und vergleicht ihn mit dem Sollwert der App.

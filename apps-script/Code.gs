@@ -10,6 +10,7 @@ const KOPF = ["Zeit", "Name", "Geraet", "Art", "Abschnitt", "Aufgabe", "Titel", 
 const GERAETE = "Geraete"; // Bindung Name ↔ Gerät, damit niemand unter fremdem Namen einträgt
 const GERAETE_KOPF = ["NameSchluessel", "Name", "Geraet", "Seit"];
 const MAX_FEHLVERSUCHE = 5; // danach 10 Minuten Sperre für Passworteingaben
+const MAX_SCHUELER = 35; // höchstens so viele verschiedene Namen je Tabelle; weitere Anmeldungen werden abgelehnt
 
 function doGet() {
   return ContentService.createTextOutput("Das Skript für die Lernapp läuft.");
@@ -43,9 +44,20 @@ function geraeteBlatt() {
 }
 
 const GEBUNDEN = "Dieser Name ist schon auf einem anderen Gerät angemeldet. Bitte wende dich an deine Lehrkraft.";
+const VOLL = "Diese Lerngruppe ist voll (" + MAX_SCHUELER + " Schülerinnen und Schüler). Ein neuer Name kann nicht mehr angemeldet werden. Bitte wende dich an deine Lehrkraft.";
 
-// "frei" wird beim ersten Mal an dieses Gerät gebunden; liefert true, wenn Name und Gerät zusammenpassen
-function geraetPasst(name, geraet) {
+// Alle Namen, die diese Tabelle schon kennt: gebundene Geräte und Namen mit Ergebnissen.
+// Ergebnisse zählen mit, damit eine gelöste Gerätebindung keinen zusätzlichen Platz frei macht.
+function bekannteNamen() {
+  const namen = {};
+  geraeteBlatt().getDataRange().getValues().slice(1).forEach(function (z) { if (String(z[0])) namen[String(z[0])] = true; });
+  blatt().getDataRange().getValues().slice(1).forEach(function (z) { const k = namensSchluessel(z[1]); if (k) namen[k] = true; });
+  return namen;
+}
+
+// Ein neuer Name wird beim ersten Mal an dieses Gerät gebunden, solange die Tabelle nicht voll ist.
+// Liefert null, wenn Name und Gerät zusammenpassen, sonst die Antwort für die App.
+function geraetPruefen(name, geraet) {
   const k = namensSchluessel(name);
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -53,9 +65,11 @@ function geraetPasst(name, geraet) {
     const b = geraeteBlatt();
     const werte = b.getDataRange().getValues().slice(1);
     const zeile = werte.find(function (z) { return String(z[0]) === k; });
-    if (zeile) return String(zeile[2]) === geraet;
+    if (zeile) return String(zeile[2]) === geraet ? null : { ok: false, gebunden: true, fehler: GEBUNDEN };
+    const namen = bekannteNamen();
+    if (!namen[k] && Object.keys(namen).length >= MAX_SCHUELER) return { ok: false, gebunden: true, voll: true, fehler: VOLL };
     b.appendRow([k, sauber(name, 40), geraet, new Date()]);
-    return true;
+    return null;
   } finally {
     lock.releaseLock();
   }
@@ -83,7 +97,8 @@ const ganz = (x, min, max) => Math.min(max, Math.max(min, Math.round(Number(x) |
 function speichern(e, geraet) {
   if (!e || !e.name) return { ok: false, fehler: "Kein Name" };
   if (!geraetGueltig(geraet)) return { ok: false, fehler: "Keine Gerätekennung" };
-  if (!geraetPasst(e.name, geraet)) return { ok: false, gebunden: true, fehler: GEBUNDEN };
+  const abgelehnt = geraetPruefen(e.name, geraet);
+  if (abgelehnt) return abgelehnt;
   const teile = (Array.isArray(e.teile) ? e.teile : []).slice(0, 16).map(function (t) {
     const teil = { id: sauber(t.id, 3), thema: sauber(t.thema, 20), richtig: !!t.richtig, versuche: ganz(t.versuche, 0, 9), hilfen: ganz(t.hilfen, 0, 9), lw: !!t.lw,
       eingaben: (Array.isArray(t.eingaben) ? t.eingaben : []).slice(0, 3).map(function (x) { return String(x).slice(0, 30); }) };
@@ -136,7 +151,7 @@ function liste() {
   const bindungen = geraeteBlatt().getDataRange().getValues().slice(1).map(function (z) {
     return { schluessel: String(z[0]), seit: z[3] instanceof Date ? z[3].toISOString() : String(z[3]) };
   });
-  return { ok: true, ergebnisse: zeilen(), bindungen: bindungen };
+  return { ok: true, ergebnisse: zeilen(), bindungen: bindungen, plaetze: { belegt: Object.keys(bekannteNamen()).length, max: MAX_SCHUELER } };
 }
 
 function freigeben(name) {
@@ -159,7 +174,8 @@ function anmelden(name, geraet) {
   const gesucht = namensSchluessel(name);
   if (!gesucht) return { ok: false, fehler: "Kein Name" };
   if (!geraetGueltig(geraet)) return { ok: false, fehler: "Keine Gerätekennung" };
-  if (!geraetPasst(name, geraet)) return { ok: false, gebunden: true, fehler: GEBUNDEN };
+  const abgelehnt = geraetPruefen(name, geraet);
+  if (abgelehnt) return abgelehnt;
   const eigene = zeilen().filter(function (e) { return namensSchluessel(e.name) === gesucht; }).map(function (e) {
     return { art: e.art, abschnitt: e.abschnitt, aufgabe: e.aufgabe, durchgang: e.durchgang, punkte: e.punkte, max: e.max, schuelerId: e.schuelerId, teile: e.teile };
   });
