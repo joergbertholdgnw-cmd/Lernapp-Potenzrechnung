@@ -86,6 +86,20 @@
     terme: { abschnitt: 4, name: "Terme mit Variablen", merke: "Gesetze nacheinander anwenden: erst Klammern (P2, P3), dann gleiche Basen zusammenfassen (P1).", tipps: ["Bei Wurzeln und Brüchen im Exponenten gilt die Bedingung x > 0."], buch: "S. 68 Nr. 9, 10; S. 71 Nr. 39, 41" }
   };
 
+  // ───────────── Comics ─────────────
+  // Je Potenzregel ein Comic (erstellt mit Canva, Beispiele mit sympy geprüft).
+  // Der Fehlerkobold Patzi macht den typischen Fehler, eine Zahlenfigur stellt ihn richtig.
+  // Die Bilder liegen in comics/; fehlt eine Datei, blendet die App das Comic aus.
+  const COMICS = [
+    { nr: 1, thema: "p1", titel: "Gleiche Basis: Exponenten addieren", alt: "Comic: Patzi rechnet 2³ · 2⁴ = 4⁷. Richtig ist 2³ · 2⁴ = 2⁷ = 128, denn die Basis bleibt gleich und die Exponenten werden addiert." },
+    { nr: 2, thema: "p1", titel: "Gleiche Basis: Exponenten subtrahieren", alt: "Comic: Patzi teilt bei 5⁶ : 5⁴ die Exponenten. Richtig ist 5⁶ : 5⁴ = 5² = 25, denn beim Dividieren werden die Exponenten subtrahiert." },
+    { nr: 3, thema: "p2", titel: "Gleicher Exponent: Basen zusammenfassen", alt: "Comic: Patzi rechnet 2³ · 5³ = 10⁶. Richtig ist 2³ · 5³ = 10³ = 1000 und 12² : 4² = 3² = 9." },
+    { nr: 4, thema: "p3", titel: "Potenz einer Potenz: Exponenten multiplizieren", alt: "Comic: Patzi rechnet (2³)² = 2⁵. Richtig ist (2³)² = 2³ · 2³ = 2⁶ = 64." },
+    { nr: 5, thema: "null", titel: "Exponent null: Es kommt 1 heraus", alt: "Comic: Die Treppe 2³ = 8, 2² = 4, 2¹ = 2 zeigt, dass jede Stufe durch 2 teilt. Deshalb ist 2⁰ = 1, nicht 0. Merke: a⁰ = 1 für a ≠ 0." },
+    { nr: 6, thema: "neg", titel: "Negative Exponenten: Kehrwert bilden", alt: "Comic: Die Treppe geht weiter mit 2⁻¹ = 1/2, 2⁻² = 1/4, 2⁻³ = 1/8. Patzi meint, 2⁻² sei −4. Merke: a⁻ⁿ = 1/aⁿ für a ≠ 0." },
+    { nr: 7, thema: "summe", titel: "Achtung, Plus-Falle!", alt: "Comic: Patzi rechnet 2³ + 2⁴ = 2⁷. Nachrechnen ergibt 8 + 16 = 24, aber 2⁷ = 128. Merke: Für Summen gibt es kein Potenzgesetz." }
+  ].map((c) => ({ ...c, bild: `comics/comic-${c.nr}.png` }));
+
   const NIVEAUS = { 1: "Basis", 2: "Standard", 3: "Vertiefung" };
 
   // ───────────── Übungen ─────────────
@@ -805,7 +819,7 @@
     return zf(t.wert, 6);
   }
 
-  const daten = { ABSCHNITTE, ABSCHLUSS, EINGANG, THEMEN, NIVEAUS, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
+  const daten = { ABSCHNITTE, ABSCHLUSS, EINGANG, THEMEN, NIVEAUS, COMICS, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
   const ziel = typeof window !== "undefined" ? window : globalThis;
   Object.assign(ziel, daten);
   if (typeof module !== "undefined") module.exports = daten;
