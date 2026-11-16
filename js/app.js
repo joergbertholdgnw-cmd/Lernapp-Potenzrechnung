@@ -330,6 +330,7 @@
         <h1>${esc(a.titel)}</h1>
         <div class="merke">${a.merke}</div>
       </section>
+      ${comicsHtml(COMICS.filter((c) => THEMEN[c.thema].abschnitt === ab))}
       <h2>Übungen</h2><div class="raster">`;
     for (const u of uebungenVon(ab)) {
       const s = stand.uebungen[u.id];
@@ -356,6 +357,7 @@
         <div class="chips">${themenVon(ab).map((th) => `<button class="chip" data-training="${th}">${THEMEN[th].name}${(stand.training?.[th]?.geschafft || 0) ? " ✓" : ""}</button>`).join("")}</div>
       </section>`;
     app.innerHTML = html;
+    verdrahteComics(app);
     kopfVerdrahten(zeigeUebersicht);
     app.querySelectorAll("[data-uebung]").forEach((k) => k.addEventListener("click", () => zeigeUebung(k.dataset.uebung)));
     document.getElementById("testStarten")?.addEventListener("click", () => zeigeTest(ab));
@@ -789,9 +791,31 @@
       ${automatisch ? `<p class="klein">Bei diesem Thema hat es jetzt ${stand.themaFehler[thema]}-mal nicht geklappt. Eine kurze Wiederholung hilft!</p>` : ""}
       <h2>🔁 ${w.name}</h2>
       <div class="merke"><p>${w.merke}</p></div>
+      ${COMICS.filter((c) => c.thema === thema).map((c) => comicBild(c)).join("")}
       ${w.tipps.length ? `<h3>Typische Stolperstellen</h3><ul>${w.tipps.map((t) => `<li>${t}</li>`).join("")}</ul>` : ""}
       <div class="knopfreihe"><button class="knopf leise" data-training="${thema}">🔁 Jetzt trainieren</button></div>`);
     verdrahteTraining(document.querySelector(".overlay"));
+  }
+
+  // ───────────── Comics ─────────────
+  function comicBild(c) {
+    return `<figure class="comic"><img src="${c.bild}" alt="${esc(c.alt)}" loading="lazy" onerror="this.closest('figure').remove()"><figcaption>Comic ${c.nr}: ${esc(c.titel)}</figcaption></figure>`;
+  }
+
+  function comicsHtml(liste) {
+    if (!liste.length) return "";
+    return `<section class="karte comics"><h2>Comics zu den Regeln</h2>
+      <p class="klein">Der Fehlerkobold Patzi macht die typischen Fehler. Tippe ein Comic an, um es groß zu sehen.</p>
+      <div class="comic-raster">${liste.map((c) => `<button class="comic-kachel" data-comic="${c.nr}"><img src="${c.bild}" alt="" loading="lazy" onerror="this.closest('button').remove()"><span>Comic ${c.nr}: ${esc(c.titel)}</span></button>`).join("")}</div>
+    </section>`;
+  }
+
+  function verdrahteComics(wurzel) {
+    wurzel.querySelectorAll("[data-comic]").forEach((b) => b.addEventListener("click", () => {
+      const c = COMICS.find((x) => x.nr === +b.dataset.comic);
+      overlay(comicBild(c) + `<div class="knopfreihe"><button class="knopf leise" data-training="${c.thema}">🔁 ${esc(THEMEN[c.thema].name)} trainieren</button></div>`);
+      verdrahteTraining(document.querySelector(".overlay"));
+    }));
   }
 
   function zeigeMerkwissen() {

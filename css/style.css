@@ -194,3 +194,14 @@ button.balken-zeile:hover { background: var(--grau); }
 .eingang { border-left: 4px solid var(--navy); }
 .kompetenzpass table { table-layout: fixed; }
 .kompetenzpass td:first-child { width: 62%; }
+
+/* Comics zu den Potenzregeln */
+.comic-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.comic-kachel { font: inherit; font-family: var(--sans); font-size: 0.85rem; text-align: left; color: var(--navy); background: var(--grau); border: 1px solid var(--linie); border-radius: var(--radius); padding: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; min-height: 44px; }
+.comic-kachel:hover { border-color: var(--navy); }
+.comic-kachel:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+.comic-kachel img { width: 100%; aspect-ratio: 794 / 1123; object-fit: cover; border-radius: 6px; background: var(--bg); }
+.comic { margin: 14px 0; }
+.comic img { display: block; width: auto; max-width: 100%; max-height: 78vh; height: auto; margin: 0 auto; border-radius: 8px; border: 1px solid var(--linie); }
+.comic figcaption { text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--gedaempft); margin-top: 6px; }
+@media print { .comics { display: none; } }

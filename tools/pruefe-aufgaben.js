@@ -28,6 +28,13 @@ for (const u of A.UEBUNGEN) {
   }
 }
 
+// Comics: Thema vorhanden, Nummern lückenlos
+A.COMICS.forEach((c, i) => {
+  if (c.nr !== i + 1) melde(`Comic an Stelle ${i + 1} hat Nummer ${c.nr}`);
+  if (!A.THEMEN[c.thema]) melde(`Comic ${c.nr}: unbekanntes Thema „${c.thema}“`);
+  if (!c.alt || !c.titel) melde(`Comic ${c.nr}: Titel oder Bildbeschreibung fehlt`);
+});
+
 // Tests: viele Startwerte, damit alle Zweige der Generatoren vorkommen
 for (const ab of A.ABSCHNITTE) {
   for (let s = 0; s < 400; s++) {
