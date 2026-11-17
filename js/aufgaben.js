@@ -100,6 +100,61 @@
     { nr: 7, thema: "summe", titel: "Achtung, Plus-Falle!", alt: "Comic: Patzi rechnet 2³ + 2⁴ = 2⁷. Nachrechnen ergibt 8 + 16 = 24, aber 2⁷ = 128. Merke: Für Summen gibt es kein Potenzgesetz." }
   ].map((c) => ({ ...c, bild: `comics/comic-${c.nr}.png` }));
 
+  // ───────────── Comic-Geschichte ─────────────
+  // Rahmenhandlung, die die sieben Comics zu einer Detektivgeschichte verbindet (Übersicht, vor den Abschnitten).
+  // Jeder Fall hat einen Detektiv-Check mit drei Antworten; richtig ist der Eintrag mit Index „richtig“.
+  // Werte mit sympy nachgerechnet: 2⁵·2³ = 2⁸, 3⁷:3² = 3⁵, 4²·25² = 100² = 10 000, (5²)⁴ = 5⁸, 7⁰ = 1, 10⁻³ = 1/1000, 3² + 3² = 18.
+  const COMIC_STORY = {
+    titel: "Patzi und die Potenz-Pannen",
+    untertitel: "Eine Detektivgeschichte in sieben Fällen",
+    intro: [
+      "Alarm im Rechenwerk von Potenzhausen! Der Fehlerkobold Patzi ist aus einem alten Klassenarbeitsheft entwischt. Seitdem schleicht er durch die Stadt und flüstert den Zahlen falsche Rechenregeln ins Ohr.",
+      "Die Zahlenfiguren sind ratlos. Die Bürgermeisterin, eine ziemlich gestresste 10, hat nur noch eine Hoffnung: dich. Ab sofort ermittelst du als Fehlerdetektivin oder Fehlerdetektiv.",
+      "Sieben Fälle, sieben Regeln. Lies jeden Comic genau, entlarve Patzis Trick und beweise mit dem Detektiv-Check, dass du ihn durchschaut hast. Jede gelöste Regel landet als Beweisstück in deinem Merkheft."
+    ],
+    faelle: [
+      { comic: 1, ort: "Die Party der Zweien",
+        vorher: "Erster Einsatz: Im Festsaal treffen drei Zweien auf vier Zweien und wollen zusammen feiern. Patzi steht am Eingang und hat eine „geniale Abkürzung“, wie man die Gäste zählt.",
+        nachher: "Patzi hat einfach die Basen addiert. Dabei wird nur gezählt, wie viele Zweien insgesamt da sind: 3 + 4 = 7. Die Basis bleibt 2. Erwischt! Patzi schlüpft durch die Hintertür und rennt Richtung Bahnhof.",
+        check: { frage: "Wie viel ist 2⁵ · 2³?", optionen: ["2⁸", "4⁸", "2¹⁵"], richtig: 0, erklaerung: "Gleiche Basis, also Exponenten addieren: 5 + 3 = 8. Die Basis bleibt 2." } },
+      { comic: 2, ort: "Kürzen am Bahnhof",
+        vorher: "Am Bahnhof soll ein Zug mit sechs Fünfen durch einen Zug mit vier Fünfen geteilt werden. Patzi sitzt am Fahrkartenschalter und rechnet die Fahrpreise mit seiner eigenen Methode aus.",
+        nachher: "Teilen heißt hier kürzen: Vier Fünfen fallen weg, zwei bleiben übrig. Die Exponenten werden subtrahiert, nicht geteilt. Patzi springt auf den letzten Waggon und fährt ins Rathaus.",
+        check: { frage: "Wie viel ist 3⁷ : 3²?", optionen: ["3⁹", "3⁵", "1⁵"], richtig: 1, erklaerung: "Gleiche Basis beim Dividieren: Exponenten subtrahieren, 7 − 2 = 5. Die Basis 3 bleibt." } },
+      { comic: 3, ort: "Die Fusion im Rathaus",
+        vorher: "Im Rathaus wollen sich eine 2 und eine 5 zusammenschließen. Beide tragen den Exponenten 3. Patzi hat den Vertrag schon aufgesetzt, mit sehr kleinem Kleingedruckten.",
+        nachher: "Bei gleichem Exponenten dürfen sich die Basen zusammentun: 2 · 5 = 10. Der Exponent bleibt aber 3. Patzis Vertrag ist ungültig. Wütend verschwindet er in der Druckerei nebenan.",
+        check: { frage: "Wie viel ist 4² · 25²?", optionen: ["100²", "100⁴", "29²"], richtig: 0, erklaerung: "Gleicher Exponent, also Basen multiplizieren: 4 · 25 = 100. Der Exponent bleibt 2, also 100² = 10 000." } },
+      { comic: 4, ort: "Die Kopiermaschine",
+        vorher: "In der Druckerei steht eine Kopiermaschine. Steckt man (2³) hinein und drückt „hoch 2“, kommen zwei Kopien heraus. Patzi hat heimlich am Zählwerk geschraubt.",
+        nachher: "Zwei Kopien von 2³ sind 2³ · 2³ = 2⁶. Bei einer Potenz einer Potenz werden die Exponenten multipliziert. Patzi flieht ins Treppenhaus und nimmt immer zwei Stufen auf einmal.",
+        check: { frage: "Wie viel ist (5²)⁴?", optionen: ["5⁶", "5¹⁶", "5⁸"], richtig: 2, erklaerung: "Potenz einer Potenz: Exponenten multiplizieren, 2 · 4 = 8." } },
+      { comic: 5, ort: "Die Treppe nach unten",
+        vorher: "Auf jeder Stufe des Treppenhauses steht eine Zweierpotenz, und mit jeder Stufe nach unten wird der Exponent um 1 kleiner. Unten ruft Patzi triumphierend: „Bei 2⁰ ist nichts mehr übrig, also 0!“",
+        nachher: "Jede Stufe nach unten teilt durch 2: 8, 4, 2 und dann 1. Also ist 2⁰ = 1 und nicht 0. Doch die Treppe ist noch nicht zu Ende. Patzi verschwindet durch eine Tür in den Keller.",
+        check: { frage: "Wie viel ist 7⁰?", optionen: ["0", "1", "7"], richtig: 1, erklaerung: "Für jede Basis a ≠ 0 gilt a⁰ = 1." } },
+      { comic: 6, ort: "Im Keller der Kehrwerte",
+        vorher: "Im Keller wird es dunkel, und die Exponenten werden negativ. Patzi hofft, dass du dich hier unten im Minus verirrst.",
+        nachher: "Die Treppe teilt einfach weiter durch 2: 1/2, 1/4, 1/8. Ein negativer Exponent macht die Zahl nicht negativ, er bildet den Kehrwert. Patzi bleibt nur noch ein Fluchtweg: die Plus-Brücke.",
+        check: { frage: "Wie viel ist 10⁻³?", optionen: ["−1000", "1/1000", "−30"], richtig: 1, erklaerung: "Negativer Exponent heißt Kehrwert: 10⁻³ = 1/10³ = 1/1000 = 0,001." } },
+      { comic: 7, ort: "Die Plus-Falle",
+        vorher: "Showdown auf der Plus-Brücke! Hier hat Patzi seine gemeinste Falle gebaut. Er wettet, dass auch du darauf hereinfällst.",
+        nachher: "Bei Plus gibt es kein Potenzgesetz. Erst ausrechnen, dann addieren: 8 + 16 = 24. Patzi tritt rückwärts in seine eigene Falle und plumpst zurück ins Klassenarbeitsheft. Klappe zu!",
+        check: { frage: "Wie viel ist 3² + 3²?", optionen: ["3⁴", "18", "9⁴"], richtig: 1, erklaerung: "Erst ausrechnen: 9 + 9 = 18. Gleiche Potenzen darfst du zusammenfassen: 3² + 3² = 2 · 3² = 18. Aber 3⁴ wäre 81." } }
+    ],
+    schluss: [
+      "Fall abgeschlossen! Patzi sitzt wieder im Heft und schmollt. Die Bürgermeisterin verleiht dir das Abzeichen „Meisterdetektiv der Potenzen“.",
+      "Aber Vorsicht: Kobolde sind zäh. In den Übungen und Tests wird Patzi es bestimmt noch einmal versuchen. Mit den sieben Beweisstücken in deinem Merkheft bist du vorbereitet."
+    ],
+    // HTML mit <sup>, weil Hochzahlen wie ⁿ und ᵐ nicht in jeder Schrift sauber erscheinen
+    merkheft: [
+      "a<sup>m</sup> · a<sup>n</sup> = a<sup>m+n</sup>", "a<sup>m</sup> : a<sup>n</sup> = a<sup>m−n</sup> (a ≠ 0)",
+      "a<sup>n</sup> · b<sup>n</sup> = (a · b)<sup>n</sup> und a<sup>n</sup> : b<sup>n</sup> = (a : b)<sup>n</sup> (b ≠ 0)",
+      "(a<sup>m</sup>)<sup>n</sup> = a<sup>m·n</sup>", "a<sup>0</sup> = 1 (a ≠ 0)", "a<sup>−n</sup> = 1/a<sup>n</sup> (a ≠ 0)",
+      "Für Summen gibt es kein Potenzgesetz: erst ausrechnen!"
+    ]
+  };
+
   const NIVEAUS = { 1: "Basis", 2: "Standard", 3: "Vertiefung" };
 
   // ───────────── Übungen ─────────────
@@ -819,7 +874,7 @@
     return zf(t.wert, 6);
   }
 
-  const daten = { ABSCHNITTE, ABSCHLUSS, EINGANG, THEMEN, NIVEAUS, COMICS, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
+  const daten = { ABSCHNITTE, ABSCHLUSS, EINGANG, THEMEN, NIVEAUS, COMICS, COMIC_STORY, UEBUNGEN, erzeugeTest, erzeugeTraining, loesungText, hash, zf };
   const ziel = typeof window !== "undefined" ? window : globalThis;
   Object.assign(ziel, daten);
   if (typeof module !== "undefined") module.exports = daten;

@@ -285,6 +285,7 @@
           <div class="chips">${themenVon(EINGANG.id).filter((th) => stand.tests[EINGANG.id].themen?.[th] === false).map((th) => `<button class="chip" data-training="${th}">🔁 ${THEMEN[th].name}</button>`).join("")}</div>
           ${sperreE.length ? "" : '<div class="knopfreihe"><button class="knopf leise" id="eingangStarten2">Eingangstest wiederholen</button></div>'}`}
       </section>`;
+    html += comicStoryKarte();
     html += `<h2 class="abschnitte-titel">Abschnitte</h2><div class="raster abschnitte">`;
     for (const a of ABSCHNITTE) {
       const f = fertigeUebungen(a.id).length, n = uebungenVon(a.id).length, l = letzterTest(a.id);
@@ -311,6 +312,7 @@
     app.innerHTML = html;
     kopfVerdrahten();
     document.getElementById("abschlusstest")?.addEventListener("click", () => zeigeTest(ABSCHLUSS.id));
+    document.getElementById("comicStory")?.addEventListener("click", () => zeigeComicStory(naechsterFall()));
     ["eingangStarten", "eingangStarten2"].forEach((id) => document.getElementById(id)?.addEventListener("click", () => zeigeTest(EINGANG.id)));
     document.getElementById("kompetenzpass").addEventListener("click", zeigeKompetenzpass);
     document.getElementById("zumAbschluss")?.addEventListener("click", () => document.querySelector(".abschluss").scrollIntoView({ behavior: "smooth" }));
@@ -816,6 +818,93 @@
       overlay(comicBild(c) + `<div class="knopfreihe"><button class="knopf leise" data-training="${c.thema}">🔁 ${esc(THEMEN[c.thema].name)} trainieren</button></div>`);
       verdrahteTraining(document.querySelector(".overlay"));
     }));
+  }
+
+  // ───────────── Comic-Geschichte ─────────────
+  // Rahmenhandlung vor den Abschnitten: Einleitung, sieben Fälle mit Comic und Detektiv-Check, Schluss mit Merkheft.
+  // Gelöste Fälle bleiben nur auf dem Gerät (stand.comicStory) und werden nicht an die Tabelle geschickt.
+  const FAELLE = COMIC_STORY.faelle.length;
+  const geloesteFaelle = () => stand.comicStory?.geloest || {};
+  const anzahlGeloest = () => COMIC_STORY.faelle.filter((f) => geloesteFaelle()[f.comic]).length;
+  const naechsterFall = () => {
+    const i = COMIC_STORY.faelle.findIndex((f) => !geloesteFaelle()[f.comic]);
+    return anzahlGeloest() === 0 ? 0 : i === -1 ? FAELLE + 1 : i + 1;
+  };
+
+  function comicStoryKarte() {
+    const n = anzahlGeloest();
+    const knopf = n === 0 ? "Geschichte starten" : n < FAELLE ? `Weiter mit Fall ${naechsterFall()}` : "Geschichte noch einmal lesen";
+    return `<section class="karte comic-story-karte">
+        <h2>🕵️ Comic-Geschichte: ${esc(COMIC_STORY.titel)}</h2>
+        <p>Der Fehlerkobold Patzi treibt in Potenzhausen sein Unwesen. Löse sieben Fälle, entlarve seine Tricks und sammle die Potenzregeln als Beweisstücke. Ideal als Einstieg vor den Abschnitten.</p>
+        <div class="fall-punkte" aria-label="${n} von ${FAELLE} Fällen gelöst">${COMIC_STORY.faelle.map((f) => `<span class="${geloesteFaelle()[f.comic] ? "geloest" : ""}">${geloesteFaelle()[f.comic] ? "✓" : f.comic}</span>`).join("")}</div>
+        <p class="klein">${n} von ${FAELLE} Fällen gelöst</p>
+        <div class="knopfreihe"><button class="knopf ${n < FAELLE ? "haupt" : "leise"}" id="comicStory">${knopf}</button></div>
+      </section>`;
+  }
+
+  // schritt 0: Einleitung, 1–7: Fälle, 8: Schluss
+  function zeigeComicStory(schritt) {
+    const fortschritt = `<div class="fall-punkte">${COMIC_STORY.faelle.map((f, i) => `<button class="${geloesteFaelle()[f.comic] ? "geloest" : ""} ${i + 1 === schritt ? "aktuell" : ""}" data-schritt="${i + 1}" aria-label="Fall ${i + 1}">${geloesteFaelle()[f.comic] ? "✓" : i + 1}</button>`).join("")}</div>`;
+    let html = kopf("Übersicht") + `<article class="karte comic-story">`;
+    if (schritt === 0) {
+      html += `<p class="klein">Comic-Geschichte</p><h1>${esc(COMIC_STORY.titel)}</h1><p class="untertitel">${esc(COMIC_STORY.untertitel)}</p>
+        ${COMIC_STORY.intro.map((p) => `<p>${esc(p)}</p>`).join("")}
+        <div class="knopfreihe"><button class="knopf haupt" data-schritt="1">Zum ersten Fall</button></div>`;
+    } else if (schritt <= FAELLE) {
+      const f = COMIC_STORY.faelle[schritt - 1], c = COMICS.find((x) => x.nr === f.comic), geloest = !!geloesteFaelle()[f.comic];
+      html += fortschritt + `<p class="klein">Fall ${schritt} von ${FAELLE}</p><h1>${esc(f.ort)}</h1>
+        <p class="erzaehler">${esc(f.vorher)}</p>
+        ${comicBild(c)}
+        <section class="detektiv-check">
+          <h2>🔍 Detektiv-Check</h2>
+          <p>${esc(f.check.frage)}</p>
+          <div class="check-optionen">${f.check.optionen.map((o, i) => `<button class="knopf leise check-option ${geloest && i === f.check.richtig ? "richtig" : ""}" data-option="${i}" ${geloest ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>
+          <p class="check-rueckmeldung" role="status">${geloest ? `✓ ${esc(f.check.erklaerung)}` : ""}</p>
+        </section>
+        <div class="fall-geloest" ${geloest ? "" : "hidden"}>
+          <p class="erzaehler">${esc(f.nachher)}</p>
+          <div class="knopfreihe">
+            <button class="knopf haupt" data-schritt="${schritt + 1}">${schritt < FAELLE ? `Weiter zu Fall ${schritt + 1}` : "Zum Abschluss"}</button>
+            <button class="knopf leise" data-training="${c.thema}">🔁 ${esc(THEMEN[c.thema].name)} trainieren</button>
+          </div>
+        </div>
+        <div class="knopfreihe"><button class="knopf leise" data-schritt="${schritt - 1}">← ${schritt === 1 ? "Zur Einleitung" : `Zurück zu Fall ${schritt - 1}`}</button></div>`;
+    } else {
+      const alle = anzahlGeloest() === FAELLE;
+      html += fortschritt + `<p class="klein">Abschluss</p><h1>${alle ? "🏅 Alle Fälle gelöst!" : "Fast geschafft"}</h1>
+        ${alle ? COMIC_STORY.schluss.map((p) => `<p>${esc(p)}</p>`).join("") : `<p>Es fehlen noch ${FAELLE - anzahlGeloest()} Fälle. Tippe oben auf eine Nummer, um einen offenen Fall zu lösen.</p>`}
+        <h2>📒 Dein Merkheft</h2>
+        <ol class="merkheft">${COMIC_STORY.faelle.map((f, i) => `<li class="${geloesteFaelle()[f.comic] ? "" : "offen"}">${geloesteFaelle()[f.comic] ? COMIC_STORY.merkheft[i] : "noch nicht gelöst"}</li>`).join("")}</ol>
+        <div class="knopfreihe"><button class="knopf haupt" id="storyZurUebersicht">Zu den Abschnitten</button><button class="knopf leise" data-schritt="0">Geschichte von vorn</button></div>`;
+    }
+    html += `</article>`;
+    app.innerHTML = html;
+    kopfVerdrahten(zeigeUebersicht);
+    app.querySelectorAll("[data-schritt]").forEach((b) => b.addEventListener("click", () => zeigeComicStory(+b.dataset.schritt)));
+    document.getElementById("storyZurUebersicht")?.addEventListener("click", zeigeUebersicht);
+    if (schritt >= 1 && schritt <= FAELLE) {
+      const f = COMIC_STORY.faelle[schritt - 1], rueck = app.querySelector(".check-rueckmeldung");
+      app.querySelectorAll(".check-option").forEach((b) => b.addEventListener("click", () => {
+        if (+b.dataset.option === f.check.richtig) {
+          stand.comicStory = stand.comicStory || { geloest: {} };
+          stand.comicStory.geloest[f.comic] = true;
+          speichern();
+          b.classList.add("richtig");
+          app.querySelectorAll(".check-option").forEach((x) => (x.disabled = true));
+          rueck.textContent = `✓ ${zufallAus(LOB)} ${f.check.erklaerung}`;
+          app.querySelector(".fall-geloest").hidden = false;
+          app.querySelectorAll(".fall-punkte [data-schritt]")[schritt - 1].classList.add("geloest");
+          app.querySelector(".fall-geloest .knopf.haupt").focus();
+        } else {
+          b.classList.add("falsch");
+          b.disabled = true;
+          rueck.textContent = "Das ist Patzis Antwort! Schau noch einmal in den Comic und versuche es erneut.";
+        }
+      }));
+    }
+    verdrahteTraining(app);
+    window.scrollTo(0, 0);
   }
 
   function zeigeMerkwissen() {

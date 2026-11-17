@@ -205,3 +205,24 @@ button.balken-zeile:hover { background: var(--grau); }
 .comic img { display: block; width: auto; max-width: 100%; max-height: 78vh; height: auto; margin: 0 auto; border-radius: 8px; border: 1px solid var(--linie); }
 .comic figcaption { text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--gedaempft); margin-top: 6px; }
 @media print { .comics { display: none; } }
+
+/* Comic-Geschichte vor den Abschnitten */
+.comic-story-karte { border-left: 4px solid var(--navy); }
+.fall-punkte { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.fall-punkte > * { font: inherit; font-family: var(--sans); font-size: 0.85rem; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--grau); color: var(--navy); border: 1px solid var(--linie); }
+.fall-punkte button { cursor: pointer; width: 44px; height: 44px; }
+.fall-punkte .geloest { background: var(--navy); color: var(--knopf-text); border-color: var(--navy); }
+.fall-punkte .aktuell { outline: 3px solid var(--navy); outline-offset: 2px; }
+.comic-story .untertitel { font-style: italic; color: var(--gedaempft); margin-top: -6px; }
+.comic-story .erzaehler { background: var(--grau); border-radius: var(--radius); padding: 12px 14px; }
+.detektiv-check { border: 1px dashed var(--navy); border-radius: var(--radius); padding: 12px 14px; margin: 14px 0; }
+.detektiv-check h2 { margin-top: 0; }
+.check-optionen { display: flex; flex-wrap: wrap; gap: 8px; }
+.check-option { min-width: 5.5rem; min-height: 44px; }
+.knopf.check-option.richtig { background: var(--navy); color: var(--knopf-text); border-color: var(--navy); }
+.check-option.falsch { text-decoration: line-through; opacity: 0.6; }
+.check-rueckmeldung { min-height: 1.4em; font-family: var(--sans); }
+.merkheft li { margin: 4px 0; }
+.merkheft li.offen { color: var(--gedaempft); font-style: italic; }
+@media print { .comic-story-karte { display: none; } }
+.knopf.check-option.richtig:disabled { opacity: 1; cursor: default; }
