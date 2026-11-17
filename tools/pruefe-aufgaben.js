@@ -35,6 +35,19 @@ A.COMICS.forEach((c, i) => {
   if (!c.alt || !c.titel) melde(`Comic ${c.nr}: Titel oder Bildbeschreibung fehlt`);
 });
 
+// Comic-Geschichte: jeder Comic genau ein Fall, Detektiv-Checks mit gültiger Lösung, Merkheft vollständig
+{
+  const S = A.COMIC_STORY;
+  const nummern = S.faelle.map((f) => f.comic);
+  if (nummern.join() !== A.COMICS.map((c) => c.nr).join()) melde(`Comic-Geschichte: Fälle ${nummern.join()} passen nicht zu den Comics`);
+  if (S.merkheft.length !== S.faelle.length) melde("Comic-Geschichte: Merkheft hat nicht so viele Einträge wie Fälle");
+  S.faelle.forEach((f, i) => {
+    if (!f.ort || !f.vorher || !f.nachher) melde(`Comic-Geschichte Fall ${i + 1}: Text fehlt`);
+    const c = f.check;
+    if (!c || c.optionen.length !== 3 || !(c.richtig >= 0 && c.richtig < 3) || new Set(c.optionen).size !== 3 || !c.erklaerung) melde(`Comic-Geschichte Fall ${i + 1}: Detektiv-Check unvollständig`);
+  });
+}
+
 // Tests: viele Startwerte, damit alle Zweige der Generatoren vorkommen
 for (const ab of A.ABSCHNITTE) {
   for (let s = 0; s < 400; s++) {
